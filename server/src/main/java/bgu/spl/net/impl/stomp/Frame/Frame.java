@@ -33,4 +33,16 @@ public class Frame {
         sb.append("\n").append(body).append("\u0000");
         return sb.toString();
     }
+
+    public static Frame setErrorFrame(Frame frame, String message) {
+        //TODO not accurate
+        frame.command = "ERROR";
+        frame.headers.put("receipt-id", "message-"+frame.headers.get("receipt-id"));
+        frame.headers.put("message", "malformed frame received");
+        frame.body = frame.toString();
+
+        return frame;
+        
+        
+    }
 }
