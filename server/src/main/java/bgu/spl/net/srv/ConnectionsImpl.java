@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import bgu.spl.net.impl.stomp.Frame.Frame;
 
@@ -14,6 +15,7 @@ public class ConnectionsImpl<T> implements Connections<T> {
     private final ConcurrentMap<String, List<Integer>> channels;
     private final ConcurrentMap<Integer, Map<String, Integer>> subscriptionIds;
     private final ConcurrentMap<String, User> users;
+   private AtomicInteger messageIdCounter = new AtomicInteger();
 
     public ConnectionsImpl() {
         this.connections = new ConcurrentHashMap<>();

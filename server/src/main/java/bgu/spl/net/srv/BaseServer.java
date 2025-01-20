@@ -13,6 +13,8 @@ public abstract class BaseServer<T> implements Server<T> {
     private final Supplier<MessagingProtocol<T>> protocolFactory;
     private final Supplier<MessageEncoderDecoder<T>> encdecFactory;
     private ServerSocket sock;
+    private Connections<T> connections;
+    private int connectionsCounter = 0;
 
     public BaseServer(
             int port,
@@ -22,16 +24,17 @@ public abstract class BaseServer<T> implements Server<T> {
         this.port = port;
         this.protocolFactory = protocolFactory;
         this.encdecFactory = encdecFactory;
-		this.sock = null;
+        this.sock = null;
     }
 
     @Override
     public void serve() {
 
         try (ServerSocket serverSock = new ServerSocket(port)) {
-			System.out.println("Server started");
+            System.out.println("Server started");
+            this.connections = new ConnectionsImpl();
 
-            this.sock = serverSock; //just to be able to close
+            this.sock = serverSock; // just to be able to close
 
             while (!Thread.currentThread().isInterrupted()) {
 
@@ -42,6 +45,7 @@ public abstract class BaseServer<T> implements Server<T> {
                         encdecFactory.get(),
                         protocolFactory.get());
 
+                this.connections.addConnection(++connectionsCounter, handler);
                 execute(handler);
             }
         } catch (IOException ex) {
@@ -52,10 +56,10 @@ public abstract class BaseServer<T> implements Server<T> {
 
     @Override
     public void close() throws IOException {
-		if (sock != null)
-			sock.close();
+        if (sock != null)
+            sock.close();
     }
 
-    protected abstract void execute(BlockingConnectionHandler<T>  handler);
+    protected abstract void execute(BlockingConnectionHandler<T> handler);
 
 }
