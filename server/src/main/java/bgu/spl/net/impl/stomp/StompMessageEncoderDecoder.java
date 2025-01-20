@@ -1,8 +1,11 @@
-package bgu.spl.net.api;
+package bgu.spl.net.impl.stomp;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
+import bgu.spl.net.api.MessageEncoderDecoder;
+import bgu.spl.net.impl.stomp.Frame.Frame;
 
 public class StompMessageEncoderDecoder implements MessageEncoderDecoder<Frame> {
     private byte[] bytes = new byte[1 << 10]; // start with 1k
