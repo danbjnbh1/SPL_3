@@ -4,8 +4,17 @@ import java.util.Map;
 
 public class Frame {
     private String command;
-    private Map<String, String> headers;
+    protected Map<String, String> headers;
     private String body;
+
+    public Frame(String command) {
+        this.command = command;
+    }
+
+    public Frame(String command, String body) {
+        this.command = command;
+        this.body = body;
+    }
 
     public Frame(String command, Map<String, String> headers, String body) {
         this.command = command;
@@ -32,17 +41,5 @@ public class Frame {
         headers.forEach((key, value) -> sb.append(key).append(":").append(value).append("\n"));
         sb.append("\n").append(body).append("\u0000");
         return sb.toString();
-    }
-
-    public static Frame setErrorFrame(Frame frame, String message) {
-        //TODO not accurate
-        frame.command = "ERROR";
-        frame.headers.put("receipt-id", "message-"+frame.headers.get("receipt-id"));
-        frame.headers.put("message", "malformed frame received");
-        frame.body = frame.toString();
-
-        return frame;
-        
-        
     }
 }

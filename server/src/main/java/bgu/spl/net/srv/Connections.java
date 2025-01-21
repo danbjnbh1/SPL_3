@@ -12,8 +12,6 @@ public interface Connections<T> {
 
     void addConnection(int connectionId, ConnectionHandler<T> handler);
 
-    void addConnection(User user);
-
     void subscribeChannel(String channel, int connectionId, int subscriptionId);
 
     void unsubscribeChannel(int subscriptionId, int connectionId);
@@ -24,14 +22,19 @@ public interface Connections<T> {
 
     boolean validHost(String host);
 
-    boolean isRegister(String login, String passcode);
+    boolean isRegister(String username, String passcode);
 
     boolean usedLogin(String login);
 
-    boolean usedPasscode(String passcode);
+    void register(String username, String passcode, int connectionId);
 
-    void addUser(User user);
+    void login(String username, int connectionId);
 
-   //TODO void response(T response);
+    public boolean isUserLoggedIn(String username);
 
+    public int getMessageIdCounter();
+
+    public int getSubscriptionId(int connectionId, String channel);
+
+    public boolean isLoggedIn(int connectionId);
 }

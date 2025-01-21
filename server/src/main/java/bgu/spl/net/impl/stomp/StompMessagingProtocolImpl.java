@@ -1,12 +1,14 @@
 package bgu.spl.net.impl.stomp;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import bgu.spl.net.api.StompMessagingProtocol;
+import bgu.spl.net.impl.stomp.Frame.ConnectedFrame;
+import bgu.spl.net.impl.stomp.Frame.ErrorFrame;
 import bgu.spl.net.impl.stomp.Frame.Frame;
+import bgu.spl.net.impl.stomp.Frame.MessageFrame;
+import bgu.spl.net.impl.stomp.Frame.ReceiptFrame;
 import bgu.spl.net.srv.Connections;
-import bgu.spl.net.srv.User;
 
 public class StompMessagingProtocolImpl implements StompMessagingProtocol<Frame> {
     private int connectionId;
@@ -38,7 +40,7 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<Frame>
 
                 break;
             case "DISCONNECT":
-                handleDisconnect();
+                handleDisconnect(message);
                 break;
 
             default:
@@ -52,63 +54,91 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<Frame>
         return shouldTerminate;
     }
 
-    void handleDisconnect() {
+    void handleDisconnect(Frame message) {
+        sendReceiptIfNeeded(message.getHeaders().get("receipt"));
+        closeConnection();
+    }
+
+    void closeConnection() {
         connections.disconnect(connectionId);
         shouldTerminate = true;
     }
 
-    void handleConnect(Frame frame) {
+    void sendReceiptIfNeeded(String receiptId) {
+        if (receiptId != null) {
+            Frame receiptFrame = new ReceiptFrame(receiptId);
+            connections.send(connectionId, receiptFrame);
+        }
+    }
 
+    boolean validateLogin() {
+        if (!connections.isLoggedIn(connectionId)) {
+            connections.send(connectionId, new ErrorFrame("Please login first", null, ""));
+            return false;
+        }
+
+        return true;
+    }
+
+    void handleConnect(Frame frame) {
         Map<String, String> headers = frame.getHeaders();
-        Frame errorFrame;
+        String receiptId = headers.get("receipt");
         if (!connections.validVersion(headers.get("accept-version")) || !connections.validHost(headers.get("host"))) {
-            errorFrame = new Frame("ERROR", headers, "Invalid frame");
-            // connections.response(errorFrame);
+            connections.send(connectionId,
+                    new ErrorFrame("Invalid accept-version or host", receiptId, frame.toString()));
+            closeConnection(); // ! check if needed
             return;
         }
-        String login = headers.get("login");
+        String username = headers.get("login");
         String passcode = headers.get("passcode");
-        if (!connections.isRegister(login, passcode)) {
+        if (connections.isRegister(username, passcode)) {
+            if (connections.isUserLoggedIn(username)) {
+                connections.send(connectionId, new ErrorFrame(
+                        "The client is already logged in, log out before trying again", receiptId,
+                        frame.toString()));
 
-            if (connections.usedLogin(login)) {
-                errorFrame = new Frame("ERROR", headers, "Password is not valid");
-                // connections.response(errorFrame);
                 return;
             }
-            if (connections.usedPasscode(passcode)) {
-                errorFrame = new Frame("ERROR", headers, "Login is not valid");
-                // connections.response(errorFrame);
-                return;
-            }
-
-        } else {
-            Map<String, String> frameHeaders = new HashMap<String, String>();
-            frameHeaders.put("version", "1.2");
-            Frame connected = new Frame("CONNECTED", frameHeaders, "");
-            User user = new User(login, passcode);
-            connections.addUser(user);
-            connections.addConnection(user);
-
-            //connections.response(connected);
+            connections.login(username, connectionId);
+            connections.send(connectionId, new ConnectedFrame());
+            sendReceiptIfNeeded(receiptId);
+            return;
         }
+        if (connections.usedLogin(username)) {
+            connections.send(connectionId, new ErrorFrame("Wrong password", receiptId, frame.toString()));
+            closeConnection();
+            return;
+        }
+        connections.register(username, passcode, connectionId);
+        connections.send(connectionId, new ConnectedFrame());
     }
 
     void handleSend(Frame frame) {
+        if (!validateLogin()) {
+            return;
+        }
         Map<String, String> headers = frame.getHeaders();
         String destination = headers.get("destination");
-        if (connections.isSubscribed(connectionId, destination)) {
-            Frame msgToSend = new Frame("MESSAGE", headers, frame.getBody());
-            connections.send(connectionId, msgToSend);
-        } else {
-            Frame msgToSend = new Frame("ERROR", headers, "User is not subscribed to this channel");
-            connections.send(connectionId, msgToSend);
-            connections.disconnect(connectionId);
-            shouldTerminate = true;
+        String receiptId = headers.get("receipt");
+
+        if (!connections.isSubscribed(connectionId, destination)) {
+            connections.send(connectionId,
+                    new ErrorFrame("User is not subscribed to the destination", receiptId, frame.toString()));
+            return;
         }
 
+        int messageId = connections.getMessageIdCounter();
+        int subscriptionId = connections.getSubscriptionId(connectionId, destination);
+        Frame response = new MessageFrame(subscriptionId, messageId, headers.get("destination"),
+                headers.get("body"));
+        connections.send(destination, response);
+        sendReceiptIfNeeded(receiptId);
     }
 
     void handleSubscribe(Frame frame) {
+        if (!validateLogin()) {
+            return;
+        }
         Map<String, String> headers = frame.getHeaders();
         String destination = headers.get("destination");
         String id = headers.get("id");
@@ -116,6 +146,9 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<Frame>
     }
 
     void handleUnsubscribe(Frame frame) {
+        if (!validateLogin()) {
+            return;
+        }
         Map<String, String> headers = frame.getHeaders();
         String id = headers.get("id");
         connections.unsubscribeChannel(Integer.parseInt(id), connectionId);

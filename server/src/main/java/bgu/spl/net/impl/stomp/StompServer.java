@@ -6,7 +6,7 @@ public class StompServer {
 
     public static void main(String[] args) {
         if (args.length != 2) {
-            System.out.println("Please provide two arguments: <port> and <server_type> (tpc or reactor)");
+            System.out.println("Please provide port and server type");
             System.exit(1);
         }
 
@@ -16,11 +16,11 @@ public class StompServer {
             Server.threadPerClient(port, () -> new StompMessagingProtocolImpl(), () -> new StompMessageEncoderDecoder())
                     .serve();
         } else if (serverType.equals("reactor")) {
-            Server.reactor(Runtime.getRuntime().availableProcessors(), port,
+            Server.reactor(5, port,
                     () -> new StompMessagingProtocolImpl(),
                     () -> new StompMessageEncoderDecoder()).serve();
         } else {
-            System.out.println("unsupported server type provider");
+            System.out.println("Unsupported server type provider");
             System.exit(1);
         }
 

@@ -1,3 +1,4 @@
+
 /workspaces/StompBookClub/server/src/main/java/bgu/spl/net/impl/echo/EchoClient.java
 /workspaces/StompBookClub/server/src/main/java/bgu/spl/net/impl/newsfeed/PublishNewsCommand.java
 /workspaces/StompBookClub/server/src/main/java/bgu/spl/net/api/MessagingProtocol.java

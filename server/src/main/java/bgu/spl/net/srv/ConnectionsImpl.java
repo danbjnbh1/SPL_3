@@ -15,7 +15,7 @@ public class ConnectionsImpl<T> implements Connections<T> {
     private final ConcurrentMap<String, List<Integer>> channels;
     private final ConcurrentMap<Integer, Map<String, Integer>> subscriptionIds;
     private final ConcurrentMap<String, User> users;
-   private AtomicInteger messageIdCounter = new AtomicInteger();
+    private AtomicInteger messageIdCounter = new AtomicInteger();
 
     public ConnectionsImpl() {
         this.connections = new ConcurrentHashMap<>();
@@ -46,6 +46,11 @@ public class ConnectionsImpl<T> implements Connections<T> {
 
     @Override
     public void disconnect(int connectionId) {
+        for (User user : users.values()) {
+            if (user.getConnectionId() == connectionId) {
+                user.setLoggedIn(false);
+            }
+        }
         connections.remove(connectionId);
         for (List<Integer> channelIds : channels.values()) {
             channelIds.remove(Integer.valueOf(connectionId));
@@ -56,13 +61,6 @@ public class ConnectionsImpl<T> implements Connections<T> {
 
     public void addConnection(int connectionId, ConnectionHandler<T> handler) {
         connections.put(connectionId, handler);
-    }
-
-    public void addConnection(User user) {
-        // TODO not sure here what to do
-        connections.put(user.getConnectionId(), new NonBlockingConnectionHandler(null, null, null, null));
-        subscriptionIds.put(user.getConnectionId(), new HashMap<String,Integer>());
-        users.put(user.getUsername(), user);
     }
 
     public void subscribeChannel(String channel, int connectionId, int subscriptionId) {
@@ -104,22 +102,41 @@ public class ConnectionsImpl<T> implements Connections<T> {
         return false;
     }
 
-    public boolean usedPasscode(String passcode) {
+    public boolean isRegister(String username, String passcode) {
+        User user = users.get(username);
+        return user != null && user.getPassword().equals(passcode);
+    }
+
+    public void register(String username, String passcode, int connectionId) {
+        User user = new User(username, passcode, connectionId);
+        users.put(username, user);
+    }
+
+    public void login(String username, int connectionId) {
+        User user = users.get(username);
+        user.login(connectionId);
+    }
+
+    public boolean isUserLoggedIn(String username) {
+        User user = users.get(username);
+        return user.isLoggedIn();
+    }
+
+    public boolean isLoggedIn(int connectionId) {
         for (User user : users.values()) {
-            if (user.getPassword().equals(passcode)) {
-                return true;
+            if (user.getConnectionId() == connectionId) {
+                return user.isLoggedIn();
             }
         }
         return false;
     }
 
-    public boolean isRegister(String login, String passcode) {
-        User userToCheck = users.get(login);
-        return userToCheck != null && userToCheck.getPassword().equals(passcode);
+    public int getMessageIdCounter() {
+        return messageIdCounter.incrementAndGet();
     }
 
-    public void addUser(User user) {
-        users.put(user.getUsername(), user);
+    public int getSubscriptionId(int connectionId, String channel) {
+        return subscriptionIds.get(connectionId).get(channel);
     }
 
 }

@@ -32,7 +32,7 @@ public abstract class BaseServer<T> implements Server<T> {
 
         try (ServerSocket serverSock = new ServerSocket(port)) {
             System.out.println("Server started");
-            this.connections = new ConnectionsImpl();
+            this.connections = new ConnectionsImpl<T>();
 
             this.sock = serverSock; // just to be able to close
 
@@ -40,12 +40,15 @@ public abstract class BaseServer<T> implements Server<T> {
 
                 Socket clientSock = serverSock.accept();
 
+                MessagingProtocol<T> protocol = protocolFactory.get();
+                protocol.start(++connectionsCounter, connections);
+
                 BlockingConnectionHandler<T> handler = new BlockingConnectionHandler<>(
                         clientSock,
                         encdecFactory.get(),
-                        protocolFactory.get());
+                        protocol);
 
-                this.connections.addConnection(++connectionsCounter, handler);
+                this.connections.addConnection(connectionsCounter, handler);
                 execute(handler);
             }
         } catch (IOException ex) {

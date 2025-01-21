@@ -1,31 +1,41 @@
 package bgu.spl.net.srv;
 
-import java.util.Map;
-
 public class User {
-    
-    private static int counterID = 0;
+
     private int connectionId;
     private String username;
     private String password;
+    private boolean isLoggedIn = false;
 
-    public User(String username, String password){
+    public User(String username, String password, int connectionId) {
         this.username = username;
         this.password = password;
-        this.connectionId = counterID++;
+        this.connectionId = connectionId;
+        this.isLoggedIn = true;
     }
 
-    public String getUsername(){
+    public String getUsername() {
         return username;
     }
 
-    public String getPassword(){
+    public String getPassword() {
         return password;
-    }   
+    }
 
-    public int getConnectionId(){
+    public int getConnectionId() {
         return connectionId;
     }
-    
 
+    public void login(int connectionId) {
+        this.connectionId = connectionId;
+        isLoggedIn = true;
+    }
+
+    public boolean isLoggedIn() {
+        return isLoggedIn;
+    }
+
+    public void setLoggedIn(boolean loggedIn) {
+        isLoggedIn = loggedIn;
+    }
 }
