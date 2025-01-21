@@ -55,8 +55,9 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<Frame>
     }
 
     void handleDisconnect(Frame message) {
-        sendReceiptIfNeeded(message.getHeaders().get("receipt"));
-        closeConnection();
+        String receiptId = message.getHeaders().get("receipt");
+        sendReceiptIfNeeded(receiptId);
+        connections.disconnect(connectionId);
     }
 
     void closeConnection() {

@@ -1,5 +1,6 @@
 package bgu.spl.net.impl.stomp.Frame;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class Frame {
@@ -9,11 +10,13 @@ public class Frame {
 
     public Frame(String command) {
         this.command = command;
+        this.headers = new HashMap<>();
     }
 
     public Frame(String command, String body) {
         this.command = command;
         this.body = body;
+        this.headers = new HashMap<>();
     }
 
     public Frame(String command, Map<String, String> headers, String body) {
