@@ -119,7 +119,7 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<Frame>
             return;
         }
         Map<String, String> headers = frame.getHeaders();
-        String destination = headers.get("destination");
+        String destination = headers.get("destination").substring(1);
         String receiptId = headers.get("receipt");
 
         if (!connections.isSubscribed(connectionId, destination)) {

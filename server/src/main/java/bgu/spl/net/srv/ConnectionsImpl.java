@@ -1,14 +1,11 @@
 package bgu.spl.net.srv;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import bgu.spl.net.impl.stomp.Frame.Frame;
 
 public class ConnectionsImpl<T> implements Connections<T> {
     private final ConcurrentMap<Integer, ConnectionHandler<T>> connections;
@@ -64,10 +61,8 @@ public class ConnectionsImpl<T> implements Connections<T> {
     }
 
     public void subscribeChannel(String channel, int connectionId, int subscriptionId) {
-
         channels.computeIfAbsent(channel, k -> new CopyOnWriteArrayList<>()).add(connectionId);
         subscriptionIds.computeIfAbsent(connectionId, k -> new ConcurrentHashMap<>()).put(channel, subscriptionId);
-
     }
 
     public void unsubscribeChannel(int subscriptionId, int connectionId) {
