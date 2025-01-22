@@ -1,3 +1,6 @@
 in target only the StompServer.jar
 login 127.0.0.1:7777 dan 123
 report /workspaces/SPL_3/events1.json
+
+# RUN SERVER
+mvn exec:java -Dexec.mainClass="bgu.spl.net.impl.stomp.StompServer" -Dexec.args="7777 tpc"
