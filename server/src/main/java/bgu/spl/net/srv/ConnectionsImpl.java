@@ -70,7 +70,9 @@ public class ConnectionsImpl<T> implements Connections<T> {
         if (subscriptions != null) {
             for (Map.Entry<String, Integer> entry : subscriptions.entrySet()) {
                 if (entry.getValue() == subscriptionId) {
-                    channels.get(entry.getKey()).remove(connections.get(connectionId));
+                    String channel = entry.getKey();
+                    channels.get(channel).remove(Integer.valueOf(connectionId));
+                    subscriptions.remove(entry.getKey());
                     break;
                 }
             }
