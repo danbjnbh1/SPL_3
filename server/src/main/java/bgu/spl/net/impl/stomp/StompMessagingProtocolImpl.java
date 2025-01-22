@@ -124,13 +124,10 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<Frame>
         String receiptId = headers.get("receipt");
 
         if (!connections.isSubscribed(connectionId, destination)) {
-            System.out.println("in unsub");
             connections.send(connectionId,
                     new ErrorFrame("User is not subscribed to the destination", receiptId, frame.toString()));
             return;
         }
-        System.out.println("after unsub");
-
 
         int messageId = connections.getMessageIdCounter();
         int subscriptionId = connections.getSubscriptionId(connectionId, destination);
