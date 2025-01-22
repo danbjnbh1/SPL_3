@@ -68,6 +68,7 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<Frame>
     void sendReceiptIfNeeded(String receiptId) {
         if (receiptId != null) {
             Frame receiptFrame = new ReceiptFrame(receiptId);
+            System.out.println(receiptFrame.toString());
             connections.send(connectionId, receiptFrame);
         }
     }

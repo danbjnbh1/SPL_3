@@ -1,13 +1,12 @@
 package bgu.spl.net.impl.stomp.Frame;
 
+import java.util.Map;
+
 public class ReceiptFrame extends Frame {
-    private final String receiptId;
+
     public ReceiptFrame(String receiptId) {
         super("RECEIPT");
-        this.receiptId = receiptId;
-    }
-
-    public String getReceiptId() {
-        return receiptId;
+        Map<String, String> headers = this.getHeaders();
+        headers.put("receipt-id", receiptId);
     }
 }

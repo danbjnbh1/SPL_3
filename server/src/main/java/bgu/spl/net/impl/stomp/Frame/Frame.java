@@ -42,7 +42,12 @@ public class Frame {
         StringBuilder sb = new StringBuilder();
         sb.append(command).append("\n");
         headers.forEach((key, value) -> sb.append(key).append(":").append(value).append("\n"));
-        sb.append("\n").append(body).append("\u0000");
+        sb.append("\n");
+        if (this.body != null) {
+             sb.append(body);
+            
+        }
+        sb.append("\u0000");
         return sb.toString();
     }
 }
