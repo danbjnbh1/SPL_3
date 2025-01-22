@@ -23,6 +23,7 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<Frame>
 
     @Override
     public void process(Frame message) {
+        System.out.println(message.toString());
         switch (message.getCommand()) {
             case "CONNECT":
                 handleConnect(message);

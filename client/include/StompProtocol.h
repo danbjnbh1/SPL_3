@@ -3,7 +3,6 @@
 #include <map>
 #include "../include/ConnectionHandler.h"
 
-// TODO: implement the STOMP protocol
 class StompProtocol
 {
 private:
@@ -13,5 +12,4 @@ public:
     std::string createSubscribeFrame(const std::string &destination, const std::string &id);
     std::string createUnsubscribeFrame(const std::string &id);
     std::string createDisconnectFrame();
-    std::map<std::string, std::string> parseFrame(const std::string &frame);
 };
