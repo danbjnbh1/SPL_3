@@ -131,7 +131,7 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<Frame>
         int messageId = connections.getMessageIdCounter();
         int subscriptionId = connections.getSubscriptionId(connectionId, destination);
         Frame response = new MessageFrame(subscriptionId, messageId, headers.get("destination"),
-                headers.get("body"));
+                frame.getBody());
         connections.send(destination, response);
         sendReceiptIfNeeded(receiptId);
     }
