@@ -21,6 +21,9 @@ bin/StompProtocol.o: src/StompProtocol.cpp
 	g++ $(CFLAGS) -o bin/StompProtocol.o src/StompProtocol.cpp
 
 .PHONY: clean
+
+run: 
+	bin/StompEMIClient
 clean:
 	rm -f bin/*
 	

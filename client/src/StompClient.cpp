@@ -17,6 +17,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
         istringstream iss(line);
         string command;
         iss >> command;
+        cout << "Command: " << command << endl;
 
         if (command == "login")
         {
@@ -62,11 +63,11 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
             }
             cout << "Sent SEND frame to server" << endl;
         }
-        else if (command == "subscribe")
+        else if (command == "join")
         {
-            string destination, id;
-            iss >> destination >> id;
-            string subscribeFrame = stompProtocol.createSubscribeFrame(destination, id);
+            string channel;
+            iss >> channel;
+            string subscribeFrame = stompProtocol.createSubscribeFrame(channel);
             if (!connectionHandler->sendLine(subscribeFrame))
             {
                 cout << "Disconnected. Exiting...\n"
@@ -75,7 +76,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
             }
             cout << "Sent SUBSCRIBE frame to server" << endl;
         }
-        else if (command == "unsubscribe")
+        else if (command == "exit")
         {
             string id;
             iss >> id;
@@ -88,7 +89,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
             }
             cout << "Sent UNSUBSCRIBE frame to server" << endl;
         }
-        else if (command == "disconnect")
+        else if (command == "logout")
         {
             string disconnectFrame = stompProtocol.createDisconnectFrame();
             if (!connectionHandler->sendLine(disconnectFrame))
@@ -98,7 +99,6 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
                 break;
             }
             cout << "Sent DISCONNECT frame to server" << endl;
-            break;
         }
         else
         {
@@ -134,16 +134,12 @@ void socketReader(ConnectionHandler *&connectionHandler, StompProtocol &stompPro
                  << endl;
             break;
         }
-        int len = answer.length();
-        answer.resize(len - 1); // Remove the newline character
-        cout << "Reply: " << answer << " " << len << " bytes " << endl
-             << endl;
-        // auto headers = stompProtocol.parseFrame(answer);
-        // // Process the headers as needed
-        // if (headers["command"] == "bye")
-        // {
-        //     break;
-        // }
+        cout << "Reply: " << answer << endl;
+        map<string, string> headers = stompProtocol.parseFrame(answer);
+        if (headers["command"] == "CONNECTED")
+        {
+            cout << "Logged in successfully" << endl;
+        }
     }
 }
 

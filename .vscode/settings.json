@@ -75,7 +75,15 @@
         "execution": "cpp",
         "locale": "cpp",
         "span": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "iterator": "cpp",
+        "memory_resource": "cpp",
+        "random": "cpp",
+        "ranges": "cpp",
+        "stop_token": "cpp",
+        "cinttypes": "cpp"
     },
     "makefile.makefilePath": "client/"
 }
