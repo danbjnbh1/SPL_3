@@ -48,4 +48,6 @@ public:
 	// Close down the connection properly.
 	void close();
 
+	bool isConnected() const;
+
 }; //class ConnectionHandler

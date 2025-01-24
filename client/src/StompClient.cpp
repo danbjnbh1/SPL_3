@@ -21,6 +21,11 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
 
         if (command == "login")
         {
+            if (connectionHandler && connectionHandler->isConnected())
+            {
+                cout << "Please logout first" << endl;
+                continue;
+            }
             string hostPort, username, password;
             iss >> hostPort >> username >> password;
 
@@ -50,7 +55,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
             cout << "Sent CONNECT frame to server" << endl;
             continue;
         }
-        if (connectionHandler == nullptr)
+        if (!connectionHandler || !connectionHandler->isConnected())
         {
             cout << "Please login first" << endl;
             continue;
@@ -142,15 +147,20 @@ void socketReader(ConnectionHandler *&connectionHandler, StompProtocol &stompPro
         }
         cout << "Reply: " << answer << endl;
         map<string, string> headers = stompProtocol.parseFrame(answer);
-        // int receiptId = stoi(headers["receipt-id"]);
-        // string request = stompProtocol.getRequestByReceipt(receiptId);
-        // if (request == "DISCONNECT")
-        // {
-        //     cout << "logedout" << endl;
-        //     connectionHandler->close();
-        //     break;
-        // }
-        if (headers["command"] == "CONNECTED")
+        string command = headers["command"];
+        if (command == "RECEIPT")
+        {
+            int receiptId = stoi(headers["receipt-id"]);
+            string request = stompProtocol.getRequestByReceipt(receiptId);
+            if (request == "DISCONNECT")
+            {
+                cout << "Logged out" << endl;
+                connectionHandler->close();
+                break;
+            }
+        }
+
+        if (command == "CONNECTED")
         {
             cout << "Login successful" << endl;
         }
