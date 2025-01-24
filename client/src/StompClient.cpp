@@ -48,6 +48,12 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
                 break;
             }
             cout << "Sent CONNECT frame to server" << endl;
+            continue;
+        }
+        if (connectionHandler == nullptr)
+        {
+            cout << "Please login first" << endl;
+            continue;
         }
         else if (command == "send")
         {
@@ -136,9 +142,17 @@ void socketReader(ConnectionHandler *&connectionHandler, StompProtocol &stompPro
         }
         cout << "Reply: " << answer << endl;
         map<string, string> headers = stompProtocol.parseFrame(answer);
+        // int receiptId = stoi(headers["receipt-id"]);
+        // string request = stompProtocol.getRequestByReceipt(receiptId);
+        // if (request == "DISCONNECT")
+        // {
+        //     cout << "logedout" << endl;
+        //     connectionHandler->close();
+        //     break;
+        // }
         if (headers["command"] == "CONNECTED")
         {
-            cout << "Logged in successfully" << endl;
+            cout << "Login successful" << endl;
         }
     }
 }
