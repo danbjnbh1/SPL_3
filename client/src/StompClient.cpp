@@ -75,7 +75,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
         //     }
         // }
 
-        else if (command == "send")
+        else if (command == "report")
         {
             // Extract the file path from the input
             std::string filePath;
@@ -164,6 +164,10 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
                      << endl;
                 break;
             }
+        }
+        else if (command == "summary")
+        {
+           
         }
         else
         {
