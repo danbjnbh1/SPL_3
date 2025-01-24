@@ -146,6 +146,7 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<Frame>
         String destination = headers.get("destination");
         String id = headers.get("id");
         connections.subscribeChannel(destination, connectionId, Integer.parseInt(id));
+        sendReceiptIfNeeded(headers.get("receipt"));
     }
 
     void handleUnsubscribe(Frame frame) {
@@ -155,5 +156,6 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<Frame>
         Map<String, String> headers = frame.getHeaders();
         String id = headers.get("id");
         connections.unsubscribeChannel(Integer.parseInt(id), connectionId);
+        sendReceiptIfNeeded(headers.get("receipt"));
     }
 }

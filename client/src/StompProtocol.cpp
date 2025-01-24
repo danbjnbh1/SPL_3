@@ -1,7 +1,7 @@
 #include "StompProtocol.h"
 #include <sstream>
 
-StompProtocol::StompProtocol() : subscriptionIdCounter(0), receiptIdCounter(0), receiptMap() {}
+StompProtocol::StompProtocol() : subscriptionIdCounter(0), receiptIdCounter(0), receiptMap(), subscriptionMap() {}
 
 std::string StompProtocol::createConnectFrame(const std::string &host, const std::string &username, const std::string &password)
 {
@@ -15,9 +15,10 @@ std::string StompProtocol::createConnectFrame(const std::string &host, const std
         << "passcode:" << password << "\n\n"
         << '\0';
 
-    addReceipt(receiptId, "CONNECT");
+    string frame = oss.str();
+    addReceipt(receiptId, frame);
 
-    return oss.str();
+    return frame;
 }
 
 std::string StompProtocol::createSendFrame(const std::string &destination, const std::string &message)
@@ -30,9 +31,10 @@ std::string StompProtocol::createSendFrame(const std::string &destination, const
         << message << "\n"
         << '\0';
 
-    addReceipt(receiptId, "SEND");
+    string frame = oss.str();
+    addReceipt(receiptId, frame);
 
-    return oss.str();
+    return frame;
 }
 
 std::string StompProtocol::createSubscribeFrame(const std::string &destination)
@@ -45,23 +47,26 @@ std::string StompProtocol::createSubscribeFrame(const std::string &destination)
         << "id:" << getNextSubscriptionId() << "\n"
         << '\0';
 
-    addReceipt(receiptId, "SUBSCRIBE");
+    string frame = oss.str();
+    addReceipt(receiptId, frame);
 
-    return oss.str();
+    return frame;
 }
 
-std::string StompProtocol::createUnsubscribeFrame(const std::string &id)
+std::string StompProtocol::createUnsubscribeFrame(const string &channel)
 {
+    int subsctiptionId = getSubscriptionIdByChannel(channel); //! handle -1 id
     int receiptId = getNextReceiptId();
     std::ostringstream oss;
     oss << "UNSUBSCRIBE\n"
         << "receipt:" << receiptId << "\n"
-        << "id:" << id << "\n\n"
+        << "id:" << subsctiptionId << "\n\n"
         << '\0';
 
-    addReceipt(receiptId, "UNSUBSCRIBE");
+    string frame = oss.str();
+    addReceipt(receiptId, frame);
 
-    return oss.str();
+    return frame;
 }
 
 std::string StompProtocol::createDisconnectFrame()
@@ -72,9 +77,10 @@ std::string StompProtocol::createDisconnectFrame()
         << "receipt:" << receiptId << "\n"
         << '\0';
 
-    addReceipt(receiptId, "DISCONNECT");
+    string frame = oss.str();
+    addReceipt(receiptId, frame);
 
-    return oss.str();
+    return frame;
 }
 
 std::map<std::string, std::string> StompProtocol::parseFrame(const std::string &frame)
@@ -128,11 +134,36 @@ void StompProtocol::addReceipt(int receiptId, const string &request)
     receiptMap[receiptId] = request;
 }
 
+void StompProtocol::addSubscription(int subscriptionId, const string &destination)
+{
+    subscriptionMap[subscriptionId] = destination;
+}
+
+void StompProtocol::removeSubscription(int subscriptionId)
+{
+    subscriptionMap.erase(subscriptionId);
+}
+
 string StompProtocol::getRequestByReceipt(int receiptId)
 {
-    if (receiptMap.find(receiptId) != receiptMap.end())
+    return receiptMap[receiptId];
+}
+
+int StompProtocol::getSubscriptionIdByChannel(const string &channel)
+{
+    std::cout << "exit " << channel << endl;
+
+    for (const pair<const int, string> &pair : subscriptionMap)
     {
-        return receiptMap[receiptId];
+        if (pair.second == channel)
+        {
+            return pair.first;
+        }
     }
-    return "";
+    return -1; // Return -1 if the subscription ID is not found
+}
+
+string StompProtocol::getChannelById(int id)
+{
+    return subscriptionMap[id];
 }

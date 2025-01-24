@@ -17,7 +17,6 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
         istringstream iss(line);
         string command;
         iss >> command;
-        cout << "Command: " << command << endl;
 
         if (command == "login")
         {
@@ -52,7 +51,6 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
                      << endl;
                 break;
             }
-            cout << "Sent CONNECT frame to server" << endl;
             continue;
         }
         if (!connectionHandler || !connectionHandler->isConnected())
@@ -72,7 +70,6 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
                      << endl;
                 break;
             }
-            cout << "Sent SEND frame to server" << endl;
         }
         else if (command == "join")
         {
@@ -85,7 +82,6 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
                      << endl;
                 break;
             }
-            cout << "Sent SUBSCRIBE frame to server" << endl;
         }
         else if (command == "exit")
         {
@@ -98,7 +94,6 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
                      << endl;
                 break;
             }
-            cout << "Sent UNSUBSCRIBE frame to server" << endl;
         }
         else if (command == "logout")
         {
@@ -109,7 +104,6 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
                      << endl;
                 break;
             }
-            cout << "Sent DISCONNECT frame to server" << endl;
         }
         else
         {
@@ -135,7 +129,7 @@ void socketReader(ConnectionHandler *&connectionHandler, StompProtocol &stompPro
     {
         if (connectionHandler == nullptr)
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Wait for connectionHandler to be initialized
+            this_thread::sleep_for(chrono::milliseconds(100)); // Wait for connectionHandler to be initialized
             continue;
         }
         string answer;
@@ -145,19 +139,40 @@ void socketReader(ConnectionHandler *&connectionHandler, StompProtocol &stompPro
                  << endl;
             break;
         }
-        cout << "Reply: " << answer << endl;
+        cout << answer << endl;
         map<string, string> headers = stompProtocol.parseFrame(answer);
         string command = headers["command"];
         if (command == "RECEIPT")
         {
             int receiptId = stoi(headers["receipt-id"]);
-            string request = stompProtocol.getRequestByReceipt(receiptId);
-            if (request == "DISCONNECT")
+            string requestedFrame = stompProtocol.getRequestByReceipt(receiptId);
+            map<string, string> parsedRequestedFrame = stompProtocol.parseFrame(requestedFrame);
+            string requestedCommand = parsedRequestedFrame["command"];
+            cout << requestedFrame << endl;
+            if (requestedCommand == "DISCONNECT")
             {
                 cout << "Logged out" << endl;
                 connectionHandler->close();
                 break;
             }
+            if (requestedCommand == "SUBSCRIBE")
+            {
+                cout << "Joined channel " << parsedRequestedFrame["destination"] << endl;
+                stompProtocol.addSubscription(stoi(parsedRequestedFrame["id"]), parsedRequestedFrame["destination"]);
+                continue;
+            }
+            if (requestedCommand == "UNSUBSCRIBE")
+            {
+                cout << "Exited channel " << stompProtocol.getChannelById(stoi(parsedRequestedFrame["id"])) << endl;
+                stompProtocol.removeSubscription(stoi(parsedRequestedFrame["id"]));
+                continue;
+            }
+        }
+
+        if (command == "ERROR")
+        {
+            cout << "ERROR FROM THE SERVER: " << endl;
+            cout << answer << endl;
         }
 
         if (command == "CONNECTED")

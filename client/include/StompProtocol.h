@@ -11,6 +11,7 @@ private:
     int subscriptionIdCounter;
     int receiptIdCounter;
     map<int, string> receiptMap; // Map to store receipt IDs and their corresponding requests
+    map<int, string> subscriptionMap; // Map to store subscription IDs and their corresponding requests
 
 public:
     StompProtocol();
@@ -25,5 +26,9 @@ public:
     int getNextSubscriptionId();
     int getNextReceiptId();
     void addReceipt(int receiptId, const std::string &request);
+    void addSubscription(int subscriptionId, const string &destination);
+    void removeSubscription(int subscriptionId);
     string getRequestByReceipt(int receiptId);
+    int getSubscriptionIdByChannel(const string &channel);
+    string getChannelById(int id);
 };
