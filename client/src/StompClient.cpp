@@ -1,12 +1,15 @@
 #include <iostream>
 #include <thread>
+#include <fstream>
 #include <mutex>
 #include "ConnectionHandler.h"
 #include "StompProtocol.h"
+#include "event.h"
+
 using namespace std;
 mutex mtx;
 
-void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompProtocol)
+void keyboardReader(ConnectionHandler *connectionHandler, StompProtocol &stompProtocol)
 {
     while (true)
     {
@@ -58,19 +61,76 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
             cout << "Please login first" << endl;
             continue;
         }
+        // else if (command == "send")
+        // {
+        //     string destination, message;
+        //     iss >> destination;
+        //     getline(iss, message);
+        //     string sendFrame = stompProtocol.createSendFrame(destination, message);
+        //     if (!connectionHandler->sendLine(sendFrame))
+        //     {
+        //         cout << "Disconnected. Exiting...\n"
+        //              << endl;
+        //         break;
+        //     }
+        // }
+
         else if (command == "send")
         {
-            string destination, message;
-            iss >> destination;
-            getline(iss, message);
-            string sendFrame = stompProtocol.createSendFrame(destination, message);
-            if (!connectionHandler->sendLine(sendFrame))
+            // Extract the file path from the input
+            std::string filePath;
+            iss >> filePath;
+
+            // Parse events file using the given `parseEventsFile` function
+            names_and_events parsedData = parseEventsFile(filePath);
+
+            // Extract the channel name and events
+            std::string channel_name = parsedData.get_channel_name();
+            std::vector<Event> events = parsedData.get_events();
+
+            // Sort events by `date_time`
+            std::sort(events.begin(), events.end(), [](const Event &a, const Event &b)
+                      { return a.get_date_time() < b.get_date_time(); });
+
+            // Create and send frames for each event
+            for (const Event &event : events)
             {
-                cout << "Disconnected. Exiting...\n"
-                     << endl;
-                break;
+                // Construct the SEND frame for the current event
+                std::ostringstream frame;
+                frame << "SEND\n"
+                      << "destination:/" << channel_name << "\n"
+                      << "user: " << channel_name << "\n" // Assume a global `username` variable
+                      << "city: " << event.get_city() << "\n"
+                      << "event name: " << event.get_name() << "\n"
+                      << "date time: " << event.get_date_time() << "\n";
+
+                // Add general information
+                frame << "general information:\n";
+                for (const auto &info : event.get_general_information())
+                {
+                    frame << "  " << info.first << ": " << info.second << "\n";
+                }
+
+                // Add description
+                frame << "description:\n"
+                      << event.get_description() << "\n";
+
+                // Terminate the frame with the end character
+                frame << "^@\n";
+                
+                // Store the frame string in a variable
+                std::string frameStr = frame.str();
+
+                // Send the frame to the server
+                if (!connectionHandler->sendLine(frameStr))
+                {
+                    std::cerr << "Failed to send frame for event: " << event.get_name() << std::endl;
+                    break;
+                }
+                std::cout << "Sent frame for event: " << event.get_name() << std::endl;
             }
         }
+
         else if (command == "join")
         {
             string channel;
@@ -123,7 +183,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
     }
 }
 
-void socketReader(ConnectionHandler *&connectionHandler, StompProtocol &stompProtocol)
+void socketReader(ConnectionHandler *connectionHandler, StompProtocol &stompProtocol)
 {
     while (true)
     {
@@ -188,8 +248,8 @@ int main(int argc, char *argv[])
     ConnectionHandler *connectionHandler = nullptr;
     StompProtocol stompProtocol;
 
-    thread keyboardThread(keyboardReader, ref(connectionHandler), ref(stompProtocol));
-    thread socketThread(socketReader, ref(connectionHandler), ref(stompProtocol));
+    thread keyboardThread(keyboardReader, connectionHandler, ref(stompProtocol));
+    thread socketThread(socketReader, connectionHandler, ref(stompProtocol));
 
     keyboardThread.join();
     socketThread.join();

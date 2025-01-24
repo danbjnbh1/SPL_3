@@ -10,7 +10,7 @@ class Event
 private:
     // name of channel
     std::string channel_name;
-    // city of the event 
+    // city of the event
     std::string city;
     // name of the event
     std::string name;
@@ -24,7 +24,7 @@ private:
 
 public:
     Event(std::string channel_name, std::string city, std::string name, int date_time, std::string description, std::map<std::string, std::string> general_information);
-    Event(const std::string & frame_body);
+    Event(const std::string &frame_body);
     virtual ~Event();
     void setEventOwnerUser(std::string setEventOwnerUser);
     const std::string &getEventOwnerUser() const;
@@ -37,9 +37,22 @@ public:
 };
 
 // an object that holds the names of the teams and a vector of events, to be returned by the parseEventsFile function
-struct names_and_events {
+struct names_and_events
+{
     std::string channel_name;
     std::vector<Event> events;
+
+    // Getter for the channel_name
+    const std::string &get_channel_name() const
+    {
+        return channel_name;
+    }
+
+    // Getter for the events
+    const std::vector<Event> &get_events() const
+    {
+        return events;
+    }
 };
 
 // function that parses the json file and returns a names_and_events object
