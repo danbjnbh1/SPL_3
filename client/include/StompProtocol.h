@@ -4,7 +4,6 @@
 #include "../include/ConnectionHandler.h"
 #include "../include/event.h"
 
-
 using namespace std;
 
 class StompProtocol
@@ -12,7 +11,7 @@ class StompProtocol
 private:
     int subscriptionIdCounter;
     int receiptIdCounter;
-    map<int, string> receiptMap; // Map to store receipt IDs and their corresponding requests
+    map<int, string> receiptMap;      // Map to store receipt IDs and their corresponding requests
     map<int, string> subscriptionMap; // Map to store subscription IDs and their corresponding requests
 
 public:
@@ -20,7 +19,6 @@ public:
 
     string createConnectFrame(const string &host, const string &login, const string &passcode);
     string createSendFrame(const Event &event, const std::string &channel_name);
-    // string createSendFrame(const string &destination, const string &message);
     string createSubscribeFrame(const string &destination);
     string createUnsubscribeFrame(const string &id);
     string createDisconnectFrame();
@@ -34,4 +32,5 @@ public:
     string getRequestByReceipt(int receiptId);
     int getSubscriptionIdByChannel(const string &channel);
     string getChannelById(int id);
+    std::string generateSummary(const std::string &channelName);
 };

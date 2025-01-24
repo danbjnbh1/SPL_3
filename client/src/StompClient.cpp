@@ -5,6 +5,7 @@
 #include "ConnectionHandler.h"
 #include "StompProtocol.h"
 #include "event.h"
+#include "FileUtils.h"
 
 using namespace std;
 mutex mtx;
@@ -61,7 +62,6 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
             cout << "Please login first" << endl;
             continue;
         }
-
         else if (command == "report")
         {
             // Extract the file path from the input
@@ -94,7 +94,6 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
                 std::cout << "Sent frame for event: " << event.get_name() << std::endl;
             }
         }
-
         else if (command == "join")
         {
             string channel;
@@ -131,7 +130,23 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
         }
         else if (command == "summary")
         {
+            string channelName, summaryFile;
+            iss >> channelName >> summaryFile;
+
+            // Generate the summary for the channel
+            string summary = stompProtocol.generateSummary(channelName);
+
+            // Write the summary to the file
+            if (writeSummaryToFile(summaryFile, summary))
+            {
+                cout << "Summary written to " << summaryFile << endl;
+            }
+            else
+            {
+                cerr << "Failed to write summary to " << summaryFile << endl;
+            }
         }
+
         else
         {
             cout << "Invalid command" << endl;

@@ -28,6 +28,7 @@ std::string StompProtocol::createSendFrame(const Event &event, const std::string
     // Construct the SEND frame for the current event
     frame << "SEND\n"
           << "destination:/" << channel_name << "\n"
+          << "receipt:" << getNextReceiptId() << "\n\n"
           << "user: " << channel_name << "\n" // Assume a global `username` variable
           << "city: " << event.get_city() << "\n"
           << "event name: " << event.get_name() << "\n"
@@ -45,11 +46,34 @@ std::string StompProtocol::createSendFrame(const Event &event, const std::string
           << event.get_description() << "\n";
 
     // Terminate the frame with the end character
-    frame << "^@\n";
+    frame << '\0';
 
     return frame.str();
 }
 
+std::string StompProtocol::generateSummary(const std::string &channelName)
+{
+    std::ostringstream summaryStream;
+
+    // Check if the channel exists
+    int subscriptionId = getSubscriptionIdByChannel(channelName);
+    if (subscriptionId == -1)
+    {
+        return "Channel " + channelName + " not found.";
+    }
+
+    // Collect and format events (placeholder logic for event collection)
+    summaryStream << "Summary for channel: " << channelName << "\n";
+    summaryStream << "-----------------------------------\n";
+    summaryStream << "Event Name | Date-Time | Description\n";
+    summaryStream << "-----------------------------------\n";
+
+    // Example event details (replace with real event logic if applicable)
+    summaryStream << "Event1 | 2025-01-01 10:00 | Example description 1\n";
+    summaryStream << "Event2 | 2025-01-02 14:00 | Example description 2\n";
+
+    return summaryStream.str();
+}
 
 std::string StompProtocol::createSubscribeFrame(const std::string &destination)
 {
