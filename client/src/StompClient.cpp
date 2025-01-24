@@ -47,7 +47,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
             string connectFrame = stompProtocol.createConnectFrame("stomp.cs.bgu.ac.il", username, password);
             if (!connectionHandler->sendLine(connectFrame))
             {
-                cout << "Disconnected. Exiting...\n"
+                cout << "Disconnected. Exiting1...\n"
                      << endl;
                 break;
             }
@@ -66,7 +66,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
             string sendFrame = stompProtocol.createSendFrame(destination, message);
             if (!connectionHandler->sendLine(sendFrame))
             {
-                cout << "Disconnected. Exiting...\n"
+                cout << "Disconnected. Exiting2...\n"
                      << endl;
                 break;
             }
@@ -78,7 +78,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
             string subscribeFrame = stompProtocol.createSubscribeFrame(channel);
             if (!connectionHandler->sendLine(subscribeFrame))
             {
-                cout << "Disconnected. Exiting...\n"
+                cout << "Disconnected. Exiting3...\n"
                      << endl;
                 break;
             }
@@ -90,7 +90,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
             string unsubscribeFrame = stompProtocol.createUnsubscribeFrame(id);
             if (!connectionHandler->sendLine(unsubscribeFrame))
             {
-                cout << "Disconnected. Exiting...\n"
+                cout << "Disconnected. Exiting4...\n"
                      << endl;
                 break;
             }
@@ -100,25 +100,14 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
             string disconnectFrame = stompProtocol.createDisconnectFrame();
             if (!connectionHandler->sendLine(disconnectFrame))
             {
-                cout << "Disconnected. Exiting...\n"
+                cout << "Disconnected. Exiting5...\n"
                      << endl;
                 break;
             }
         }
         else
         {
-            int len = line.length();
-            if (!connectionHandler->sendLine(line))
-            {
-                cout << "Disconnected. Exiting...\n"
-                     << endl;
-                break;
-            }
-            cout << "Sent " << len + 1 << " bytes to server" << endl;
-            if (line == "bye")
-            {
-                break;
-            }
+            cout << "Invalid command" << endl;
         }
     }
 }
@@ -127,15 +116,17 @@ void socketReader(ConnectionHandler *&connectionHandler, StompProtocol &stompPro
 {
     while (true)
     {
-        if (connectionHandler == nullptr)
+        if (connectionHandler == nullptr || !connectionHandler->isConnected())
         {
+            cout << "waiting for connectionHandler to be initialized" << endl;
+
             this_thread::sleep_for(chrono::milliseconds(100)); // Wait for connectionHandler to be initialized
             continue;
         }
         string answer;
         if (!connectionHandler->getLine(answer))
         {
-            cout << "Disconnected. Exiting...\n"
+            cout << "Disconnected. Exiting7...\n"
                  << endl;
             break;
         }
@@ -153,7 +144,7 @@ void socketReader(ConnectionHandler *&connectionHandler, StompProtocol &stompPro
             {
                 cout << "Logged out" << endl;
                 connectionHandler->close();
-                break;
+                continue;
             }
             if (requestedCommand == "SUBSCRIBE")
             {

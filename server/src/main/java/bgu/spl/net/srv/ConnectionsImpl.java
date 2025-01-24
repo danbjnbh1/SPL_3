@@ -92,8 +92,8 @@ public class ConnectionsImpl<T> implements Connections<T> {
         return host.equals("stomp.cs.bgu.ac.il");
     }
 
-    public boolean usedLogin(String login) {
-        if (users.get(login) != null) {
+    public boolean isUsedUsername(String username) {
+        if (users.get(username) != null) {
             return true;
         }
         return false;

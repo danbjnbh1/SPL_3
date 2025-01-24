@@ -24,7 +24,7 @@ public interface Connections<T> {
 
     boolean isRegister(String username, String passcode);
 
-    boolean usedLogin(String login);
+    boolean isUsedUsername(String username);
 
     void register(String username, String passcode, int connectionId);
 
