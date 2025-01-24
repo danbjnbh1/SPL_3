@@ -9,6 +9,7 @@
 
 using namespace std;
 mutex mtx;
+condition_variable cv;
 
 void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompProtocol)
 {
@@ -47,6 +48,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
                 cout << "Cannot connect to " << host << ":" << port << endl;
                 continue;
             }
+            cv.notify_all(); // Notify the socketReader thread
 
             string connectFrame = stompProtocol.createConnectFrame("stomp.cs.bgu.ac.il", username, password);
             if (!connectionHandler->sendLine(connectFrame))
@@ -156,13 +158,12 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
 
 void socketReader(ConnectionHandler *&connectionHandler, StompProtocol &stompProtocol)
 {
+    unique_lock<mutex> lock(mtx);
     while (true)
     {
-        if (connectionHandler == nullptr || !connectionHandler->isConnected())
-        {
-            this_thread::sleep_for(chrono::milliseconds(100)); // Wait for connectionHandler to be initialized
-            continue;
-        }
+        cv.wait(lock, [&connectionHandler]
+                { return connectionHandler != nullptr && connectionHandler->isConnected(); });
+
         string answer;
         if (!connectionHandler->getLine(answer))
         {
@@ -204,6 +205,7 @@ void socketReader(ConnectionHandler *&connectionHandler, StompProtocol &stompPro
         {
             cout << "ERROR FROM THE SERVER: " << endl;
             cout << answer << endl;
+            connectionHandler->close();
         }
 
         if (command == "CONNECTED")
@@ -219,10 +221,9 @@ int main(int argc, char *argv[])
     ConnectionHandler *connectionHandler = nullptr;
     StompProtocol stompProtocol;
 
-    thread keyboardThread(keyboardReader, ref(connectionHandler), ref(stompProtocol));
     thread socketThread(socketReader, ref(connectionHandler), ref(stompProtocol));
+    keyboardReader(connectionHandler, stompProtocol);
 
-    keyboardThread.join();
     socketThread.join();
 
     return 0;
