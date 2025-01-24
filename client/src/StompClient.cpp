@@ -146,15 +146,9 @@ void socketReader(ConnectionHandler *&connectionHandler, StompProtocol &stompPro
     unique_lock<mutex> lock(mtx);
     while (true)
     {
-        cout << "Waiting for connection..." << endl;
         cv.wait(lock, [&connectionHandler]
                 { return connectionHandler != nullptr && connectionHandler->isConnected(); });
-        cout << "Connected!" << endl;
-        if (connectionHandler == nullptr || !connectionHandler->isConnected())
-        {
-            this_thread::sleep_for(chrono::milliseconds(100)); // Wait for connectionHandler to be initialized
-            continue;
-        }
+
         string answer;
         if (!connectionHandler->getLine(answer))
         {
