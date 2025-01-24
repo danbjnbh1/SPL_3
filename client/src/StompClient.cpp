@@ -61,6 +61,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
             cout << "Please login first" << endl;
             continue;
         }
+
         else if (command == "report")
         {
             // Extract the file path from the input
@@ -81,31 +82,8 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
             // Create and send frames for each event
             for (const Event &event : events)
             {
-                // Construct the SEND frame for the current event
-                std::ostringstream frame;
-                frame << "SEND\n"
-                      << "destination:/" << channel_name << "\n"
-                      << "user: " << channel_name << "\n" // Assume a global `username` variable
-                      << "city: " << event.get_city() << "\n"
-                      << "event name: " << event.get_name() << "\n"
-                      << "date time: " << event.get_date_time() << "\n";
-
-                // Add general information
-                frame << "general information:\n";
-                for (const auto &info : event.get_general_information())
-                {
-                    frame << "  " << info.first << ": " << info.second << "\n";
-                }
-
-                // Add description
-                frame << "description:\n"
-                      << event.get_description() << "\n";
-
-                // Terminate the frame with the end character
-                frame << "^@\n";
-
-                // Store the frame string in a variable
-                std::string frameStr = frame.str();
+                // Call the `createSendFrame` function to construct the frame
+                std::string frameStr = stompProtocol.createSendFrame(event, channel_name);
 
                 // Send the frame to the server
                 if (!connectionHandler->sendLine(frameStr))

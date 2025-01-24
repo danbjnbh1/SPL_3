@@ -21,21 +21,35 @@ std::string StompProtocol::createConnectFrame(const std::string &host, const std
     return frame;
 }
 
-std::string StompProtocol::createSendFrame(const std::string &destination, const std::string &message)
+std::string StompProtocol::createSendFrame(const Event &event, const std::string &channel_name)
 {
-    int receiptId = getNextReceiptId();
-    std::ostringstream oss;
-    oss << "SEND\n"
-        << "receipt:" << receiptId << "\n"
-        << "destination:" << destination << "\n\n"
-        << message << "\n"
-        << '\0';
+    std::ostringstream frame;
 
-    string frame = oss.str();
-    addReceipt(receiptId, frame);
+    // Construct the SEND frame for the current event
+    frame << "SEND\n"
+          << "destination:/" << channel_name << "\n"
+          << "user: " << channel_name << "\n" // Assume a global `username` variable
+          << "city: " << event.get_city() << "\n"
+          << "event name: " << event.get_name() << "\n"
+          << "date time: " << event.get_date_time() << "\n";
 
-    return frame;
+    // Add general information
+    frame << "general information:\n";
+    for (const auto &info : event.get_general_information())
+    {
+        frame << "  " << info.first << ": " << info.second << "\n";
+    }
+
+    // Add description
+    frame << "description:\n"
+          << event.get_description() << "\n";
+
+    // Terminate the frame with the end character
+    frame << "^@\n";
+
+    return frame.str();
 }
+
 
 std::string StompProtocol::createSubscribeFrame(const std::string &destination)
 {
