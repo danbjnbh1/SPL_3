@@ -61,20 +61,6 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
             cout << "Please login first" << endl;
             continue;
         }
-        // else if (command == "send")
-        // {
-        //     string destination, message;
-        //     iss >> destination;
-        //     getline(iss, message);
-        //     string sendFrame = stompProtocol.createSendFrame(destination, message);
-        //     if (!connectionHandler->sendLine(sendFrame))
-        //     {
-        //         cout << "Disconnected. Exiting...\n"
-        //              << endl;
-        //         break;
-        //     }
-        // }
-
         else if (command == "report")
         {
             // Extract the file path from the input
@@ -117,7 +103,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
 
                 // Terminate the frame with the end character
                 frame << "^@\n";
-                
+
                 // Store the frame string in a variable
                 std::string frameStr = frame.str();
 
@@ -167,7 +153,6 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
         }
         else if (command == "summary")
         {
-           
         }
         else
         {
