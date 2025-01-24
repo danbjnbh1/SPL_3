@@ -9,7 +9,7 @@
 using namespace std;
 mutex mtx;
 
-void keyboardReader(ConnectionHandler *connectionHandler, StompProtocol &stompProtocol)
+void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompProtocol)
 {
     while (true)
     {
@@ -172,14 +172,12 @@ void keyboardReader(ConnectionHandler *connectionHandler, StompProtocol &stompPr
     }
 }
 
-void socketReader(ConnectionHandler *connectionHandler, StompProtocol &stompProtocol)
+void socketReader(ConnectionHandler *&connectionHandler, StompProtocol &stompProtocol)
 {
     while (true)
     {
         if (connectionHandler == nullptr || !connectionHandler->isConnected())
         {
-            cout << "waiting for connectionHandler to be initialized" << endl;
-
             this_thread::sleep_for(chrono::milliseconds(100)); // Wait for connectionHandler to be initialized
             continue;
         }
@@ -239,8 +237,8 @@ int main(int argc, char *argv[])
     ConnectionHandler *connectionHandler = nullptr;
     StompProtocol stompProtocol;
 
-    thread keyboardThread(keyboardReader, connectionHandler, ref(stompProtocol));
-    thread socketThread(socketReader, connectionHandler, ref(stompProtocol));
+    thread keyboardThread(keyboardReader, ref(connectionHandler), ref(stompProtocol));
+    thread socketThread(socketReader, ref(connectionHandler), ref(stompProtocol));
 
     keyboardThread.join();
     socketThread.join();
