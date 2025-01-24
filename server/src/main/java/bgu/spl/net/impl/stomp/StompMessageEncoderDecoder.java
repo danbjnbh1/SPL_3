@@ -37,15 +37,25 @@ public class StompMessageEncoderDecoder implements MessageEncoderDecoder<Frame> 
     }
 
     private Frame parseFrame(String frameString) {
-        String[] parts = frameString.split("\n\n", 2);
-        String[] lines = parts[0].split("\n");
+        String[] parts = frameString.split("\n\n", 2); 
+        String[] lines = parts[0].split("\n"); 
+
         String command = lines[0];
         Map<String, String> headers = new HashMap<>();
+
+        // Parse headers
         for (int i = 1; i < lines.length; i++) {
-            String[] header = lines[i].split(":", 2);
-            headers.put(header[0], header[1]);
+            String[] header = lines[i].split(":", 2); 
+            if (header.length == 2) {
+                headers.put(header[0].trim(), header[1].trim()); 
+            } else {
+                System.err.println("Malformed header: " + lines[i]);
+            }
         }
+
         String body = parts.length > 1 ? parts[1] : "";
+
         return new Frame(command, headers, body);
     }
+
 }
