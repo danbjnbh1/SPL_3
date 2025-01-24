@@ -18,8 +18,6 @@ ConnectionHandler::~ConnectionHandler()
 
 bool ConnectionHandler::connect()
 {
-	std::cout << "Starting connect to "
-			  << host_ << ":" << port_ << std::endl;
 	try
 	{
 		tcp::endpoint endpoint(boost::asio::ip::address::from_string(host_), port_); // the server endpoint
@@ -85,6 +83,7 @@ bool ConnectionHandler::getLine(std::string &line)
 
 bool ConnectionHandler::sendLine(std::string &line)
 {
+	cout << "sending: " << line << endl;
 	return sendFrameAscii(line, '\0');
 }
 

@@ -69,7 +69,6 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<Frame>
     void sendReceiptIfNeeded(String receiptId) {
         if (receiptId != null) {
             Frame receiptFrame = new ReceiptFrame(receiptId);
-            System.out.println(receiptFrame.toString());
             connections.send(connectionId, receiptFrame);
         }
     }
@@ -102,12 +101,13 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<Frame>
 
                 return;
             }
+            System.out.println("login again");
             connections.login(username, connectionId);
             connections.send(connectionId, new ConnectedFrame());
             sendReceiptIfNeeded(receiptId);
             return;
         }
-        if (connections.usedLogin(username)) {
+        if (connections.isUsedUsername(username)) {
             connections.send(connectionId, new ErrorFrame("Wrong password", receiptId, frame.toString()));
             closeConnection();
             return;
