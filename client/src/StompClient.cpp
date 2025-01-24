@@ -189,6 +189,7 @@ void socketReader(ConnectionHandler *&connectionHandler, StompProtocol &stompPro
         {
             cout << "ERROR FROM THE SERVER: " << endl;
             cout << answer << endl;
+            connectionHandler->close();
         }
 
         if (command == "CONNECTED")
