@@ -1,11 +1,22 @@
-CFLAGS:=-c -Wall -Weffc++ -g -std=c++11 -Iinclude
-LDFLAGS:=-lboost_system -lpthread
-# Updated makefile for StompEMIClient
-all: StompEMIClient
+# Compiler and flags
+CFLAGS := -c -Wall -Weffc++ -g -std=c++17 -Iinclude
+CXXFLAGS := -std=c++17 -Wall -Wextra -O2
+LDFLAGS := -lboost_system -lpthread
 
-StompEMIClient: bin/ConnectionHandler.o bin/StompClient.o bin/StompProtocol.o bin/event.o bin/FileUtils.o
-	g++ -o bin/StompEMIClient bin/ConnectionHandler.o bin/StompClient.o bin/StompProtocol.o bin/event.o bin/FileUtils.o $(LDFLAGS)
+# Target executable
+TARGET := bin/StompEMIClient
 
+# Object files
+OBJECTS := bin/ConnectionHandler.o bin/StompClient.o bin/StompProtocol.o bin/event.o bin/FileUtils.o
+
+# Default target
+all: $(TARGET)
+
+# Link the final executable
+$(TARGET): $(OBJECTS)
+	g++ -o $(TARGET) $(OBJECTS) $(LDFLAGS)
+
+# Compile individual source files
 bin/ConnectionHandler.o: src/ConnectionHandler.cpp
 	g++ $(CFLAGS) -o bin/ConnectionHandler.o src/ConnectionHandler.cpp
 
@@ -21,9 +32,12 @@ bin/StompProtocol.o: src/StompProtocol.cpp
 bin/FileUtils.o: src/FileUtils.cpp
 	g++ $(CFLAGS) -o bin/FileUtils.o src/FileUtils.cpp
 
+# Clean target to remove all generated files
 .PHONY: clean
-
-run: 
-	bin/StompEMIClient
 clean:
 	rm -f bin/*
+
+# Run the executable
+.PHONY: run
+run: $(TARGET)
+	$(TARGET)
