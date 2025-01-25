@@ -39,5 +39,5 @@ public:
     int numOfActive();
     int numOfForcesArrival();
     string addDetails(std::map<std::string, std::string> &bodyParsed);
-
+    map<string, string> parseEventBody(const string &body);
 };

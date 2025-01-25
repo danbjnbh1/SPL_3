@@ -4,10 +4,10 @@
 
 StompProtocol::StompProtocol() : subscriptionIdCounter(0), receiptIdCounter(0), receiptMap(), subscriptionMap(), messageList() {}
 
-std::string StompProtocol::createConnectFrame(const std::string &host, const std::string &username, const std::string &password)
+string StompProtocol::createConnectFrame(const string &host, const string &username, const string &password)
 {
     int receiptId = getNextReceiptId();
-    std::ostringstream oss;
+    ostringstream oss;
     oss << "CONNECT\n"
         << "receipt:" << receiptId << "\n"
         << "accept-version:1.2\n"
@@ -22,9 +22,9 @@ std::string StompProtocol::createConnectFrame(const std::string &host, const std
     return frame;
 }
 
-std::string StompProtocol::createSendFrame(const Event &event, const std::string &channel_name)
+string StompProtocol::createSendFrame(const Event &event, const string &channel_name)
 {
-    std::ostringstream frame;
+    ostringstream frame;
 
     // Construct the SEND frame for the current event
     frame << "SEND\n"
@@ -52,9 +52,9 @@ std::string StompProtocol::createSendFrame(const Event &event, const std::string
     return frame.str();
 }
 
-std::string StompProtocol::generateSummary(const std::string &channelName)
+string StompProtocol::generateSummary(const string &channelName)
 {
-    std::ostringstream summaryStream;
+    ostringstream summaryStream;
 
     // Check if the channel exists
     int subscriptionId = getSubscriptionIdByChannel(channelName);
@@ -72,13 +72,14 @@ std::string StompProtocol::generateSummary(const std::string &channelName)
     summaryStream << "Event Report: " << "\n\n";
 
     int counter = 1;
-    for (const std::string &message : getMessages())
+    for (const string &message : getMessages())
     {
+        cout << message << endl;
 
-        std::map<std::string, std::string> headers = parseFrame(message);
+        map<string, string> headers = parseFrame(message);
 
-        std::string body = headers["body"];
-        std::map<std::string, std::string> bodyParsed = parseFrame(body);
+        string body = headers["body"];
+        map<string, string> bodyParsed = parseEventBody(body);
         summaryStream << "Report_" << counter << ":\n";
         summaryStream << addDetails(bodyParsed);
 
@@ -88,10 +89,9 @@ std::string StompProtocol::generateSummary(const std::string &channelName)
     summaryStream << '\0';
     return summaryStream.str();
 }
-std::string StompProtocol::addDetails(std::map<std::string, std::string> &bodyParsed)
+string StompProtocol::addDetails(map<string, string> &bodyParsed)
 {
-
-    std::ostringstream oss;
+    ostringstream oss;
     for (const auto &[key, value] : bodyParsed)
     {
         if (key == "city")
@@ -144,10 +144,10 @@ int StompProtocol::numOfForcesArrival()
     return count;
 }
 
-std::string StompProtocol::createSubscribeFrame(const std::string &destination)
+string StompProtocol::createSubscribeFrame(const string &destination)
 {
     int receiptId = getNextReceiptId();
-    std::ostringstream oss;
+    ostringstream oss;
     oss << "SUBSCRIBE\n"
         << "receipt:" << receiptId << "\n"
         << "destination:" << destination << "\n"
@@ -160,11 +160,11 @@ std::string StompProtocol::createSubscribeFrame(const std::string &destination)
     return frame;
 }
 
-std::string StompProtocol::createUnsubscribeFrame(const string &channel)
+string StompProtocol::createUnsubscribeFrame(const string &channel)
 {
     int subsctiptionId = getSubscriptionIdByChannel(channel); //! handle -1 id
     int receiptId = getNextReceiptId();
-    std::ostringstream oss;
+    ostringstream oss;
     oss << "UNSUBSCRIBE\n"
         << "receipt:" << receiptId << "\n"
         << "id:" << subsctiptionId << "\n\n"
@@ -176,10 +176,10 @@ std::string StompProtocol::createUnsubscribeFrame(const string &channel)
     return frame;
 }
 
-std::string StompProtocol::createDisconnectFrame()
+string StompProtocol::createDisconnectFrame()
 {
     int receiptId = getNextReceiptId();
-    std::ostringstream oss;
+    ostringstream oss;
     oss << "DISCONNECT\n"
         << "receipt:" << receiptId << "\n"
         << '\0';
@@ -190,29 +190,29 @@ std::string StompProtocol::createDisconnectFrame()
     return frame;
 }
 
-std::map<std::string, std::string> StompProtocol::parseFrame(const std::string &frame)
+map<string, string> StompProtocol::parseFrame(const string &frame)
 {
-    std::map<std::string, std::string> headers;
-    std::istringstream stream(frame);
-    std::string line;
+    map<string, string> headers;
+    istringstream stream(frame);
+    string line;
 
     // Get the command
-    std::getline(stream, line);
+    getline(stream, line);
     headers["command"] = line;
 
     // Get the headers
-    while (std::getline(stream, line) && !line.empty())
+    while (getline(stream, line) && !line.empty())
     {
         auto colonPos = line.find(':');
-        if (colonPos != std::string::npos)
+        if (colonPos != string::npos)
         {
             headers[line.substr(0, colonPos)] = line.substr(colonPos + 1);
         }
     }
 
     // Get the body (if any)
-    std::string body;
-    while (std::getline(stream, line))
+    string body;
+    while (getline(stream, line))
     {
         body += line + "\n";
     }
@@ -224,6 +224,67 @@ std::map<std::string, std::string> StompProtocol::parseFrame(const std::string &
     }
 
     return headers;
+}
+
+#include "StompProtocol.h"
+#include <sstream>
+#include <map>
+#include <string>
+
+map<string, string> StompProtocol::parseEventBody(const string &body)
+{
+    map<string, string> eventDetails;
+    istringstream stream(body);
+    string line;
+
+    bool inGeneralInfo = false;
+    bool nextLineIsDescription = false;
+    while (getline(stream, line))
+    {
+        auto colonPos = line.find(':');
+        if (colonPos != string::npos)
+        {
+            string key = line.substr(0, colonPos);
+            string value = line.substr(colonPos + 1);
+
+            if (key == "general information")
+            {
+                inGeneralInfo = true;
+                continue;
+            }
+
+            if (inGeneralInfo)
+            {
+                // Skip lines in the general information section
+                if (line[0] != ' ')
+                {
+                    inGeneralInfo = false;
+                }
+                else
+                {
+                    cout << "key: " << key << " value: " << value << endl;
+                    continue;
+                }
+            }
+
+            if (key == "description")
+            {
+                nextLineIsDescription = true;
+                eventDetails[key] = ""; // Initialize the description key
+                continue;
+            }
+
+            eventDetails[key] = value;
+        }
+
+        else if (nextLineIsDescription)
+        {
+            eventDetails["description"] = line;
+            nextLineIsDescription = false;
+        }
+    }
+
+    return eventDetails;
 }
 
 int StompProtocol::getNextSubscriptionId()

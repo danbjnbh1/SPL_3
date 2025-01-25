@@ -134,11 +134,9 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
         {
             string channelName, clientName, summaryFile;
 
-            // קריאת שאר הפרמטרים
             iss >> channelName >> clientName;
-            getline(iss, summaryFile); // לוקח את כל מה שנשאר בשורה כנתיב הקובץ
+            getline(iss, summaryFile);
 
-            // מסיר רווחים עודפים בתחילת הנתיב
             if (!summaryFile.empty() && summaryFile[0] == ' ')
             {
                 summaryFile = summaryFile.substr(1);
