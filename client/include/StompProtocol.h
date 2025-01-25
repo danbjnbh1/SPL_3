@@ -36,4 +36,8 @@ public:
     string generateSummary(const std::string &channelName);
     void addMessage(const string &message);
     vector<string> getMessages();
+    int numOfActive();
+    int numOfForcesArrival();
+    string addDetails(std::map<std::string, std::string> &bodyParsed);
+
 };

@@ -1,5 +1,6 @@
 #include "StompProtocol.h"
 #include <sstream>
+#include <vector>
 
 StompProtocol::StompProtocol() : subscriptionIdCounter(0), receiptIdCounter(0), receiptMap(), subscriptionMap(), messageList() {}
 
@@ -62,17 +63,85 @@ std::string StompProtocol::generateSummary(const std::string &channelName)
         return "Channel " + channelName + " not found.";
     }
 
-    // Collect and format events (placeholder logic for event collection)
-    summaryStream << "Summary for channel: " << channelName << "\n";
-    summaryStream << "-----------------------------------\n";
-    summaryStream << "Event Name | Date-Time | Description\n";
-    summaryStream << "-----------------------------------\n";
+    // Collect and format events
+    summaryStream << "Channel " << channelName << "\n";
+    summaryStream << "Stats: \n";
+    summaryStream << "Total: " << getMessages().size() << "\n";
+    summaryStream << "Active: " << numOfActive() << "\n";
+    summaryStream << "Forces arrival at scene: " << numOfForcesArrival() << "\n\n";
+    summaryStream << "Event Report: " << "\n\n";
 
-    // Example event details (replace with real event logic if applicable)
-    summaryStream << "Event1 | 2025-01-01 10:00 | Example description 1\n";
-    summaryStream << "Event2 | 2025-01-02 14:00 | Example description 2\n";
+    int counter = 1;
+    for (const std::string &message : getMessages())
+    {
 
+        std::map<std::string, std::string> headers = parseFrame(message);
+
+        std::string body = headers["body"];
+        std::map<std::string, std::string> bodyParsed = parseFrame(body);
+        summaryStream << "Report_" << counter << ":\n";
+        summaryStream << addDetails(bodyParsed);
+
+        summaryStream << "\n";
+        counter++;
+    }
+    summaryStream << '\0';
     return summaryStream.str();
+}
+std::string StompProtocol::addDetails(std::map<std::string, std::string> &bodyParsed)
+{
+
+    std::ostringstream oss;
+    for (const auto &[key, value] : bodyParsed)
+    {
+        if (key == "city")
+        {
+            oss << "  city:" << value << "\n";
+            continue;
+        }
+        if (key == "date time")
+        {
+            oss << "  date time:" << value << "\n";
+            continue;
+        }
+        if (key == "event name")
+        {
+            oss << "  event name:" << value << "\n";
+            continue;
+        }
+        if (key == "description")
+        {
+            oss << "  summary:" << value << "\n";
+            continue;
+        }
+    }
+    return oss.str();
+}
+
+int StompProtocol::numOfActive()
+{
+    int count = 0;
+    for (string message : getMessages())
+    {
+        if (message.find("active: true") != string::npos)
+        {
+            count++;
+        }
+    }
+    return count;
+}
+
+int StompProtocol::numOfForcesArrival()
+{
+    int count = 0;
+    for (string message : getMessages())
+    {
+        if (message.find("forces_arrival_at_scene: true") != string::npos)
+        {
+            count++;
+        }
+    }
+    return count;
 }
 
 std::string StompProtocol::createSubscribeFrame(const std::string &destination)

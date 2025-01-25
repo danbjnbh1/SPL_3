@@ -132,16 +132,17 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
         }
         else if (command == "summary")
         {
+            string channelName, clientName, summaryFile;
 
-            //! to remove
-            for (string message : stompProtocol.getMessages())
+            // קריאת שאר הפרמטרים
+            iss >> channelName >> clientName;
+            getline(iss, summaryFile); // לוקח את כל מה שנשאר בשורה כנתיב הקובץ
+
+            // מסיר רווחים עודפים בתחילת הנתיב
+            if (!summaryFile.empty() && summaryFile[0] == ' ')
             {
-                cout << message << endl;
+                summaryFile = summaryFile.substr(1);
             }
-
-            //---------------------
-            string channelName, summaryFile;
-            iss >> channelName >> summaryFile;
 
             // Generate the summary for the channel
             string summary = stompProtocol.generateSummary(channelName);
