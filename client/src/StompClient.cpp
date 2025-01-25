@@ -132,6 +132,14 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
         }
         else if (command == "summary")
         {
+
+            //! to remove
+            for (string message : stompProtocol.getMessages())
+            {
+                cout << message << endl;
+            }
+
+            //---------------------
             string channelName, summaryFile;
             iss >> channelName >> summaryFile;
 
@@ -180,7 +188,6 @@ void socketReader(ConnectionHandler *&connectionHandler, StompProtocol &stompPro
             string requestedFrame = stompProtocol.getRequestByReceipt(receiptId);
             map<string, string> parsedRequestedFrame = stompProtocol.parseFrame(requestedFrame);
             string requestedCommand = parsedRequestedFrame["command"];
-            cout << requestedFrame << endl;
             if (requestedCommand == "DISCONNECT")
             {
                 cout << "Logged out" << endl;
@@ -211,6 +218,11 @@ void socketReader(ConnectionHandler *&connectionHandler, StompProtocol &stompPro
         if (command == "CONNECTED")
         {
             cout << "Login successful" << endl;
+        }
+
+        if (command == "MESSAGE")
+        {
+            stompProtocol.addMessage(answer);
         }
     }
 }

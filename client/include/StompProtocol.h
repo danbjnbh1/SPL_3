@@ -13,6 +13,7 @@ private:
     int receiptIdCounter;
     map<int, string> receiptMap;      // Map to store receipt IDs and their corresponding requests
     map<int, string> subscriptionMap; // Map to store subscription IDs and their corresponding requests
+    vector<string> messageList;
 
 public:
     StompProtocol();
@@ -32,5 +33,7 @@ public:
     string getRequestByReceipt(int receiptId);
     int getSubscriptionIdByChannel(const string &channel);
     string getChannelById(int id);
-    std::string generateSummary(const std::string &channelName);
+    string generateSummary(const std::string &channelName);
+    void addMessage(const string &message);
+    vector<string> getMessages();
 };

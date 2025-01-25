@@ -1,7 +1,7 @@
 #include "StompProtocol.h"
 #include <sstream>
 
-StompProtocol::StompProtocol() : subscriptionIdCounter(0), receiptIdCounter(0), receiptMap(), subscriptionMap() {}
+StompProtocol::StompProtocol() : subscriptionIdCounter(0), receiptIdCounter(0), receiptMap(), subscriptionMap(), messageList() {}
 
 std::string StompProtocol::createConnectFrame(const std::string &host, const std::string &username, const std::string &password)
 {
@@ -189,8 +189,6 @@ string StompProtocol::getRequestByReceipt(int receiptId)
 
 int StompProtocol::getSubscriptionIdByChannel(const string &channel)
 {
-    std::cout << "exit " << channel << endl;
-
     for (const pair<const int, string> &pair : subscriptionMap)
     {
         if (pair.second == channel)
@@ -204,4 +202,14 @@ int StompProtocol::getSubscriptionIdByChannel(const string &channel)
 string StompProtocol::getChannelById(int id)
 {
     return subscriptionMap[id];
+}
+
+void StompProtocol::addMessage(const string &message)
+{
+    messageList.push_back(message);
+}
+
+vector<string> StompProtocol::getMessages()
+{
+    return messageList;
 }
