@@ -98,10 +98,9 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<Frame>
                 connections.send(connectionId, new ErrorFrame(
                         "The client is already logged in, log out before trying again", receiptId,
                         frame.toString()));
-
+                closeConnection();
                 return;
             }
-            System.out.println("login again");
             connections.login(username, connectionId);
             connections.send(connectionId, new ConnectedFrame());
             sendReceiptIfNeeded(receiptId);
