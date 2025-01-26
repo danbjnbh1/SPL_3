@@ -8,19 +8,19 @@ using std::cout;
 using std::endl;
 using std::string;
 
-ConnectionHandler::ConnectionHandler(string host, short port) : host_(host), port_(port), io_service_(),
-																socket_(io_service_) {}
+ConnectionHandler::ConnectionHandler() : io_service_(),
+										 socket_(io_service_) {}
 
 ConnectionHandler::~ConnectionHandler()
 {
 	close();
 }
 
-bool ConnectionHandler::connect()
+bool ConnectionHandler::connect(string host, short port)
 {
 	try
 	{
-		tcp::endpoint endpoint(boost::asio::ip::address::from_string(host_), port_); // the server endpoint
+		tcp::endpoint endpoint(boost::asio::ip::address::from_string(host), port); // the server endpoint
 		boost::system::error_code error;
 		socket_.connect(endpoint, error);
 		if (error)

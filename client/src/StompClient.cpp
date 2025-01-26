@@ -25,7 +25,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol *&stomp
 
         if (command == "login")
         {
-            if (connectionHandler && connectionHandler->isConnected())
+            if (connectionHandler->isConnected())
             {
                 cout << "Please logout first" << endl;
                 continue;
@@ -37,15 +37,10 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol *&stomp
             string portStr = hostPort.substr(hostPort.find(':') + 1);
             short port = stoi(portStr);
 
-            if (connectionHandler != nullptr)
-            {
-                delete connectionHandler;
-            }
-            connectionHandler = new ConnectionHandler(host, port);
-
-            if (!connectionHandler->connect())
+            if (!connectionHandler->connect(host, port))
             {
                 cout << "Cannot connect to " << host << ":" << port << endl;
+                connectionHandler->close();
                 continue;
             }
             cv.notify_all(); // Notify the socketReader thread
@@ -85,7 +80,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol *&stomp
 
             // Sort events by `date_time`
             sort(events.begin(), events.end(), [](const Event &a, const Event &b)
-                      { return a.get_date_time() < b.get_date_time(); });
+                 { return a.get_date_time() < b.get_date_time(); });
 
             // Create and send frames for each event
             for (const Event &event : events)
@@ -142,7 +137,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol *&stomp
             string disconnectFrame = stompProtocol->createDisconnectFrame();
             if (!connectionHandler->sendLine(disconnectFrame))
             {
-                cout << "Disconnected. Exiting5...\n"
+                cout << "Disconnected. Exiting...\n"
                      << endl;
                 break;
             }
@@ -256,13 +251,16 @@ void socketReader(ConnectionHandler *&connectionHandler, StompProtocol *&stompPr
 int main(int argc, char *argv[])
 {
     cout << "Starting client" << endl;
-    ConnectionHandler *connectionHandler = nullptr;
+    ConnectionHandler *connectionHandler = new ConnectionHandler();
     StompProtocol *stompProtocol = new StompProtocol();
 
     thread socketThread(socketReader, ref(connectionHandler), ref(stompProtocol));
     keyboardReader(connectionHandler, stompProtocol);
 
     socketThread.join();
+
+    delete connectionHandler;
+    delete stompProtocol;
 
     return 0;
 }
