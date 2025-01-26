@@ -260,7 +260,6 @@ map<string, string> StompProtocol::parseEventBody(const string &body)
                 }
                 else
                 {
-                    cout << "key: " << key << " value: " << value << endl;
                     continue;
                 }
             }
@@ -339,7 +338,6 @@ void StompProtocol::addMessage(const string &message)
 
 vector<string> StompProtocol::getMessages(const string &clientName)
 {
-    int counter = 0;
     vector<string> messages;
     for (const string &message : getMessages(clientName))
     {
