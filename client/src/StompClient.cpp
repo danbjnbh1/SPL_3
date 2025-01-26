@@ -68,18 +68,23 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol *&stomp
         else if (command == "report")
         {
             // Extract the file path from the input
-            std::string filePath;
+            string filePath;
             iss >> filePath;
 
             // Parse events file using the given `parseEventsFile` function
             names_and_events parsedData = parseEventsFile(filePath);
 
             // Extract the channel name and events
-            std::string channel_name = parsedData.get_channel_name();
-            std::vector<Event> events = parsedData.get_events();
+            string channel_name = parsedData.get_channel_name();
+            if (stompProtocol->getSubscriptionIdByChannel(channel_name) == -1)
+            {
+                cout << "You are not subscribed to this channel" << endl;
+                continue;
+            }
+            vector<Event> events = parsedData.get_events();
 
             // Sort events by `date_time`
-            std::sort(events.begin(), events.end(), [](const Event &a, const Event &b)
+            sort(events.begin(), events.end(), [](const Event &a, const Event &b)
                       { return a.get_date_time() < b.get_date_time(); });
 
             // Create and send frames for each event
@@ -92,16 +97,21 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol *&stomp
                 // Send the frame to the server
                 if (!connectionHandler->sendLine(frameStr))
                 {
-                    std::cerr << "Failed to send frame for event: " << event.get_name() << std::endl;
+                    cerr << "Failed to send frame for event: " << event.get_name() << endl;
                     break;
                 }
-                std::cout << "Sent frame for event: " << event.get_name() << std::endl;
+                cout << "Sent frame for event: " << event.get_name() << endl;
             }
         }
         else if (command == "join")
         {
             string channel;
             iss >> channel;
+            if (stompProtocol->getSubscriptionIdByChannel(channel) != -1)
+            {
+                cout << "You are already subscribed to this channel" << endl;
+                continue;
+            }
             string subscribeFrame = stompProtocol->createSubscribeFrame(channel);
             if (!connectionHandler->sendLine(subscribeFrame))
             {
@@ -112,9 +122,15 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol *&stomp
         }
         else if (command == "exit")
         {
-            string id;
-            iss >> id;
-            string unsubscribeFrame = stompProtocol->createUnsubscribeFrame(id);
+            string channel;
+            iss >> channel;
+            int id = stompProtocol->getSubscriptionIdByChannel(channel);
+            if (id == -1)
+            {
+                cout << "You are not subscribed to this channel" << endl;
+                continue;
+            }
+            string unsubscribeFrame = stompProtocol->createUnsubscribeFrame(channel);
             if (!connectionHandler->sendLine(unsubscribeFrame))
             {
                 cout << "Disconnected. Exiting4...\n"
