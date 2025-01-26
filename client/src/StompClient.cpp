@@ -87,7 +87,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol *&stomp
             {
                 // Call the `createSendFrame` function to construct the frame
                 string user_name = stompProtocol->getUsername();
-                std::string frameStr = stompProtocol->createSendFrame(event, channel_name, user_name);
+                string frameStr = stompProtocol->createSendFrame(event, channel_name, user_name);
 
                 // Send the frame to the server
                 if (!connectionHandler->sendLine(frameStr))

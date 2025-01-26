@@ -45,4 +45,6 @@ public:
     const string &getUsername() const;
     string converTimestampToString(const std::string &timestampStr);
     string truncateString(const std::string &str);
+    vector<string> sortMessages(const vector<string> &messages);
+    bool compareMessages(const string &msg1, const string &msg2);
 };

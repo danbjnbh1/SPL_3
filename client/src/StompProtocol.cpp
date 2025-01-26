@@ -72,7 +72,8 @@ string StompProtocol::generateSummary(const string &channelName, const string &c
     summaryStream << "Event Report: " << "\n\n";
 
     int counter = 1;
-    for (const string &message : getMessages(clientName))
+    vector<string> clientMessages = getMessages(clientName);
+    for (const string &message : sortMessages(clientMessages))
     {
         map<string, string> bodyParsed = parseEventBody(message);
         summaryStream << "Report_" << counter << ":\n";
@@ -83,6 +84,32 @@ string StompProtocol::generateSummary(const string &channelName, const string &c
     }
     summaryStream << '\0';
     return summaryStream.str();
+}
+
+// Comparator function to sort messages by time and event name
+bool StompProtocol::compareMessages(const string &msg1, const string &msg2)
+{
+    map<string, string> headers1 = parseFrame(msg1);
+    map<string, string> headers2 = parseFrame(msg2);
+
+    time_t time1 = stoll(headers1["date time"]);
+    time_t time2 = stoll(headers2["date time"]);
+
+    if (time1 != time2)
+    {
+        return time1 < time2;
+    }
+
+    return headers1["event name"] < headers2["event name"];
+}
+
+// Method to sort a vector of messages and return a new sorted vector
+vector<string> StompProtocol::sortMessages(const vector<string> &messages)
+{
+    vector<string> sortedMessages = messages;
+    sort(sortedMessages.begin(), sortedMessages.end(), [this](const string &msg1, const string &msg2)
+         { return this->compareMessages(msg1, msg2); });
+    return sortedMessages;
 }
 
 string StompProtocol::addDetails(map<string, string> &bodyParsed)
@@ -114,21 +141,23 @@ string StompProtocol::addDetails(map<string, string> &bodyParsed)
     return oss.str();
 }
 
-string StompProtocol::truncateString(const std::string &str) {
-    if (str.length() > 27) {
+string StompProtocol::truncateString(const string &str)
+{
+    if (str.length() > 27)
+    {
         return str.substr(0, 27) + "...";
     }
     return str;
 }
 
-string StompProtocol::converTimestampToString(const string &timestampStr) {
+string StompProtocol::converTimestampToString(const string &timestampStr)
+{
     time_t timestamp = stoll(timestampStr);
     tm *tm = localtime(&timestamp);
     char buffer[100];
     strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", tm);
     return string(buffer);
 }
-
 
 int StompProtocol::numOfActive(const string &clientName)
 {
@@ -356,12 +385,12 @@ vector<string> StompProtocol::getMessages(const string &clientName)
     for (const string &message : messageList)
     {
         map<string, string> headers = parseEventBody(message);
-        if (headers["user"] == " "+ clientName)
+        if (headers["user"] == " " + clientName)
         {
             messages.push_back(message);
         }
     }
-    
+
     return messages;
 }
 
