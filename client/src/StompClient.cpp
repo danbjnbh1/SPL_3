@@ -149,6 +149,12 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol *&stomp
             iss >> channelName >> clientName;
             getline(iss, summaryFile);
 
+            if (stompProtocol->getSubscriptionIdByChannel(channelName) == -1)
+            {
+                cout << "You are not subscribed to this channel" << endl;
+                continue;
+            }
+
             if (!summaryFile.empty() && summaryFile[0] == ' ')
             {
                 summaryFile = summaryFile.substr(1);
