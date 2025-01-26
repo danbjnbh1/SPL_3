@@ -74,9 +74,7 @@ string StompProtocol::generateSummary(const string &channelName, const string &c
     int counter = 1;
     for (const string &message : getMessages(clientName))
     {
-        map<string, string> headers = parseFrame(message);
-        string body = headers["body"];
-        map<string, string> bodyParsed = parseEventBody(body);
+        map<string, string> bodyParsed = parseEventBody(message);
         summaryStream << "Report_" << counter << ":\n";
         summaryStream << addDetails(bodyParsed);
 
