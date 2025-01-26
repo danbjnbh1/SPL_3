@@ -22,7 +22,7 @@ string StompProtocol::createConnectFrame(const string &host, const string &usern
     return frame;
 }
 
-string StompProtocol::createSendFrame(const Event &event, const string &channel_name)
+string StompProtocol::createSendFrame(const Event &event, const string &channel_name, const string &user_name)
 {
     ostringstream frame;
 
@@ -30,7 +30,7 @@ string StompProtocol::createSendFrame(const Event &event, const string &channel_
     frame << "SEND\n"
           << "destination:/" << channel_name << "\n"
           << "receipt:" << getNextReceiptId() << "\n\n"
-          << "user: " << channel_name << "\n" // Assume a global `username` variable
+          << "user: " << user_name << "\n" // Assume a global `username` variable
           << "city: " << event.get_city() << "\n"
           << "event name: " << event.get_name() << "\n"
           << "date time: " << event.get_date_time() << "\n";
@@ -52,7 +52,7 @@ string StompProtocol::createSendFrame(const Event &event, const string &channel_
     return frame.str();
 }
 
-string StompProtocol::generateSummary(const string &channelName)
+string StompProtocol::generateSummary(const string &channelName, const string &clientName)
 {
     ostringstream summaryStream;
 
@@ -66,18 +66,18 @@ string StompProtocol::generateSummary(const string &channelName)
     // Collect and format events
     summaryStream << "Channel " << channelName << "\n";
     summaryStream << "Stats: \n";
-    summaryStream << "Total: " << getMessages().size() << "\n";
-    summaryStream << "Active: " << numOfActive() << "\n";
-    summaryStream << "Forces arrival at scene: " << numOfForcesArrival() << "\n\n";
+    summaryStream << "Total: " << getMessages(clientName).size() << "\n";
+    summaryStream << "Active: " << numOfActive(clientName) << "\n";
+    summaryStream << "Forces arrival at scene: " << numOfForcesArrival(clientName) << "\n\n";
     summaryStream << "Event Report: " << "\n\n";
 
     int counter = 1;
-    for (const string &message : getMessages())
+    for (const string &message : getMessages(clientName))
     {
+        
         cout << message << endl;
 
         map<string, string> headers = parseFrame(message);
-
         string body = headers["body"];
         map<string, string> bodyParsed = parseEventBody(body);
         summaryStream << "Report_" << counter << ":\n";
@@ -118,10 +118,10 @@ string StompProtocol::addDetails(map<string, string> &bodyParsed)
     return oss.str();
 }
 
-int StompProtocol::numOfActive()
+int StompProtocol::numOfActive(const string &clientName)
 {
     int count = 0;
-    for (string message : getMessages())
+    for (string message : getMessages(clientName))
     {
         if (message.find("active: true") != string::npos)
         {
@@ -131,10 +131,10 @@ int StompProtocol::numOfActive()
     return count;
 }
 
-int StompProtocol::numOfForcesArrival()
+int StompProtocol::numOfForcesArrival(const string &clientName)
 {
     int count = 0;
-    for (string message : getMessages())
+    for (string message : getMessages(clientName))
     {
         if (message.find("forces_arrival_at_scene: true") != string::npos)
         {
@@ -339,8 +339,19 @@ void StompProtocol::addMessage(const string &message)
     messageList.push_back(message);
 }
 
-vector<string> StompProtocol::getMessages()
+vector<string> StompProtocol::getMessages(const string &clientName)
 {
+    int counter = 0;
+    vector<string> messages;
+    for (const string &message : messageList)
+    {
+        map<string, string> headers = parseFrame(message);
+        if (headers["user"] == clientName)
+        {
+            messages.push_back(message);
+        }
+    }
+    
     return messageList;
 }
 
