@@ -97,7 +97,7 @@ string StompProtocol::addDetails(map<string, string> &bodyParsed)
         }
         if (key == "date time")
         {
-            oss << "  date time:" << value << "\n";
+            oss << "  date time:" << converTimestampToString(value) << "\n";
             continue;
         }
         if (key == "event name")
@@ -107,12 +107,28 @@ string StompProtocol::addDetails(map<string, string> &bodyParsed)
         }
         if (key == "description")
         {
-            oss << "  summary:" << value << "\n";
+            oss << "  summary:" << truncateString(value) << "\n";
             continue;
         }
     }
     return oss.str();
 }
+
+string StompProtocol::truncateString(const std::string &str) {
+    if (str.length() > 27) {
+        return str.substr(0, 27) + "...";
+    }
+    return str;
+}
+
+string StompProtocol::converTimestampToString(const string &timestampStr) {
+    time_t timestamp = stoll(timestampStr);
+    tm *tm = localtime(&timestamp);
+    char buffer[100];
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", tm);
+    return string(buffer);
+}
+
 
 int StompProtocol::numOfActive(const string &clientName)
 {

@@ -43,4 +43,6 @@ public:
     map<string, string> parseEventBody(const string &body);
     void setUsername(const string &username);
     const string &getUsername() const;
+    string converTimestampToString(const std::string &timestampStr);
+    string truncateString(const std::string &str);
 };
