@@ -20,7 +20,7 @@ public:
     StompProtocol();
 
     string createConnectFrame(const string &host, const string &login, const string &passcode);
-    string createSendFrame(const Event &event, const std::string &channel_name);
+    string createSendFrame(const Event &event, const std::string &channel_name, const std::string &user_name);
     string createSubscribeFrame(const string &destination);
     string createUnsubscribeFrame(const string &id);
     string createDisconnectFrame();
@@ -34,11 +34,11 @@ public:
     string getRequestByReceipt(int receiptId);
     int getSubscriptionIdByChannel(const string &channel);
     string getChannelById(int id);
-    string generateSummary(const std::string &channelName);
+    string generateSummary(const std::string &channelName, const std::string &clientName);
     void addMessage(const string &message);
-    vector<string> getMessages();
-    int numOfActive();
-    int numOfForcesArrival();
+    vector<string> getMessages(const string &clientName);
+    int numOfActive(const string &clientName);
+    int numOfForcesArrival(const string &clientName);
     string addDetails(std::map<std::string, std::string> &bodyParsed);
     map<string, string> parseEventBody(const string &body);
     void setUsername(const string &username);

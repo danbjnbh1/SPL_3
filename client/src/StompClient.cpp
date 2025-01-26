@@ -86,7 +86,8 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol *&stomp
             for (const Event &event : events)
             {
                 // Call the `createSendFrame` function to construct the frame
-                string frameStr = stompProtocol->createSendFrame(event, channel_name);
+                string user_name = stompProtocol->getUsername();
+                std::string frameStr = stompProtocol->createSendFrame(event, channel_name, user_name);
 
                 // Send the frame to the server
                 if (!connectionHandler->sendLine(frameStr))
@@ -155,7 +156,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol *&stomp
             }
 
             // Generate the summary for the channel
-            string summary = stompProtocol->generateSummary(channelName);
+            string summary = stompProtocol->generateSummary(channelName, clientName);
 
             // Write the summary to the file
             if (writeSummaryToFile(summaryFile, summary))
