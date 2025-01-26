@@ -95,7 +95,6 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol *&stomp
                     cerr << "Failed to send frame for event: " << event.get_name() << endl;
                     break;
                 }
-                cout << "Sent frame for event: " << event.get_name() << endl;
             }
         }
         else if (command == "join")
@@ -191,7 +190,6 @@ void socketReader(ConnectionHandler *&connectionHandler, StompProtocol *&stompPr
                  << endl;
             break;
         }
-        cout << answer << endl;
         map<string, string> headers = stompProtocol->parseFrame(answer);
         string command = headers["command"];
         if (command == "RECEIPT")
