@@ -86,6 +86,7 @@ string StompProtocol::generateSummary(const string &channelName, const string &c
     summaryStream << '\0';
     return summaryStream.str();
 }
+
 string StompProtocol::addDetails(map<string, string> &bodyParsed)
 {
     ostringstream oss;
@@ -338,7 +339,7 @@ void StompProtocol::addMessage(const string &message)
 vector<string> StompProtocol::getMessages(const string &clientName)
 {
     vector<string> messages;
-    for (const string &message : messageList)
+    for (const string &message : getMessages(clientName))
     {
         map<string, string> headers = parseFrame(message);
         if (headers["user"] == clientName)
@@ -346,8 +347,8 @@ vector<string> StompProtocol::getMessages(const string &clientName)
             messages.push_back(message);
         }
     }
-
-    return messageList;
+    
+    return messages;
 }
 
 void StompProtocol::setUsername(const string &username)

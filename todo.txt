@@ -1,15 +1,20 @@
 in target only the StompServer.jar
 login 127.0.0.1:7777 dan 123
-login 127.0.0.1:7778 dan 123
+login 127.0.0.1:7777 or 123
+login 127.0.0.1:7777 hila 123
 
 join police
 report /workspaces/SPL_3/events1.json
+report /workspaces/SPL_3/events2.json
+
 
 # RUN SERVER
 mvn exec:java -Dexec.mainClass="bgu.spl.net.impl.stomp.StompServer" -Dexec.args="7777 tpc"
 
 # SUMMARY
 summary police dan /workspaces/SPL_3/events1_out.txt
+summary police or /workspaces/SPL_3/events1_out.txt
+
 
 # RUN EXAMPLE SERVER
 java -jar StompServer.jar 7777 tpc
