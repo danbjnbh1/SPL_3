@@ -13,7 +13,9 @@ mvn exec:java -Dexec.mainClass="bgu.spl.net.impl.stomp.StompServer" -Dexec.args=
 
 # SUMMARY
 summary police dan /workspaces/SPL_3/events1_out.txt
-summary police or /workspaces/SPL_3/events1_out.txt
+summary police dan /workspaces/SPL_3/events2_out.txt
+summary police or /workspaces/SPL_3/events3_out.txt
+
 
 
 # RUN EXAMPLE SERVER
