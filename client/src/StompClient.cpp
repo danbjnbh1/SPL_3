@@ -11,7 +11,7 @@ using namespace std;
 mutex mtx;
 condition_variable cv;
 
-void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompProtocol)
+void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol *&stompProtocol)
 {
     while (true)
     {
@@ -50,7 +50,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
             }
             cv.notify_all(); // Notify the socketReader thread
 
-            string connectFrame = stompProtocol.createConnectFrame("stomp.cs.bgu.ac.il", username, password);
+            string connectFrame = stompProtocol->createConnectFrame("stomp.cs.bgu.ac.il", username, password);
             if (!connectionHandler->sendLine(connectFrame))
             {
                 cout << "Disconnected. Exiting1...\n"
@@ -85,7 +85,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
             for (const Event &event : events)
             {
                 // Call the `createSendFrame` function to construct the frame
-                std::string frameStr = stompProtocol.createSendFrame(event, channel_name);
+                std::string frameStr = stompProtocol->createSendFrame(event, channel_name);
 
                 // Send the frame to the server
                 if (!connectionHandler->sendLine(frameStr))
@@ -100,7 +100,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
         {
             string channel;
             iss >> channel;
-            string subscribeFrame = stompProtocol.createSubscribeFrame(channel);
+            string subscribeFrame = stompProtocol->createSubscribeFrame(channel);
             if (!connectionHandler->sendLine(subscribeFrame))
             {
                 cout << "Disconnected. Exiting3...\n"
@@ -112,7 +112,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
         {
             string id;
             iss >> id;
-            string unsubscribeFrame = stompProtocol.createUnsubscribeFrame(id);
+            string unsubscribeFrame = stompProtocol->createUnsubscribeFrame(id);
             if (!connectionHandler->sendLine(unsubscribeFrame))
             {
                 cout << "Disconnected. Exiting4...\n"
@@ -122,7 +122,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
         }
         else if (command == "logout")
         {
-            string disconnectFrame = stompProtocol.createDisconnectFrame();
+            string disconnectFrame = stompProtocol->createDisconnectFrame();
             if (!connectionHandler->sendLine(disconnectFrame))
             {
                 cout << "Disconnected. Exiting5...\n"
@@ -143,7 +143,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
             }
 
             // Generate the summary for the channel
-            string summary = stompProtocol.generateSummary(channelName);
+            string summary = stompProtocol->generateSummary(channelName);
 
             // Write the summary to the file
             if (writeSummaryToFile(summaryFile, summary))
@@ -163,7 +163,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol &stompP
     }
 }
 
-void socketReader(ConnectionHandler *&connectionHandler, StompProtocol &stompProtocol)
+void socketReader(ConnectionHandler *&connectionHandler, StompProtocol *&stompProtocol)
 {
     unique_lock<mutex> lock(mtx);
     while (true)
@@ -179,30 +179,35 @@ void socketReader(ConnectionHandler *&connectionHandler, StompProtocol &stompPro
             break;
         }
         cout << answer << endl;
-        map<string, string> headers = stompProtocol.parseFrame(answer);
+        map<string, string> headers = stompProtocol->parseFrame(answer);
         string command = headers["command"];
         if (command == "RECEIPT")
         {
             int receiptId = stoi(headers["receipt-id"]);
-            string requestedFrame = stompProtocol.getRequestByReceipt(receiptId);
-            map<string, string> parsedRequestedFrame = stompProtocol.parseFrame(requestedFrame);
+            string requestedFrame = stompProtocol->getRequestByReceipt(receiptId);
+            map<string, string> parsedRequestedFrame = stompProtocol->parseFrame(requestedFrame);
             string requestedCommand = parsedRequestedFrame["command"];
             if (requestedCommand == "DISCONNECT")
             {
                 cout << "Logged out" << endl;
                 connectionHandler->close();
+                if (stompProtocol != nullptr)
+                {
+                    delete stompProtocol;
+                    stompProtocol = new StompProtocol();
+                }
                 continue;
             }
             if (requestedCommand == "SUBSCRIBE")
             {
                 cout << "Joined channel " << parsedRequestedFrame["destination"] << endl;
-                stompProtocol.addSubscription(stoi(parsedRequestedFrame["id"]), parsedRequestedFrame["destination"]);
+                stompProtocol->addSubscription(stoi(parsedRequestedFrame["id"]), parsedRequestedFrame["destination"]);
                 continue;
             }
             if (requestedCommand == "UNSUBSCRIBE")
             {
-                cout << "Exited channel " << stompProtocol.getChannelById(stoi(parsedRequestedFrame["id"])) << endl;
-                stompProtocol.removeSubscription(stoi(parsedRequestedFrame["id"]));
+                cout << "Exited channel " << stompProtocol->getChannelById(stoi(parsedRequestedFrame["id"])) << endl;
+                stompProtocol->removeSubscription(stoi(parsedRequestedFrame["id"]));
                 continue;
             }
         }
@@ -212,6 +217,11 @@ void socketReader(ConnectionHandler *&connectionHandler, StompProtocol &stompPro
             cout << "ERROR FROM THE SERVER: " << endl;
             cout << answer << endl;
             connectionHandler->close();
+            if (stompProtocol != nullptr)
+            {
+                delete stompProtocol;
+                stompProtocol = new StompProtocol();
+            }
         }
 
         if (command == "CONNECTED")
@@ -221,7 +231,7 @@ void socketReader(ConnectionHandler *&connectionHandler, StompProtocol &stompPro
 
         if (command == "MESSAGE")
         {
-            stompProtocol.addMessage(answer);
+            stompProtocol->addMessage(answer);
         }
     }
 }
@@ -230,7 +240,7 @@ int main(int argc, char *argv[])
 {
     cout << "Starting client" << endl;
     ConnectionHandler *connectionHandler = nullptr;
-    StompProtocol stompProtocol;
+    StompProtocol *stompProtocol = new StompProtocol();
 
     thread socketThread(socketReader, ref(connectionHandler), ref(stompProtocol));
     keyboardReader(connectionHandler, stompProtocol);
