@@ -1,5 +1,7 @@
 in target only the StompServer.jar
 login 127.0.0.1:7777 dan 123
+login 127.0.0.1:7778 dan 123
+
 join police
 report /workspaces/SPL_3/events1.json
 
