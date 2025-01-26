@@ -2,7 +2,7 @@
 #include <sstream>
 #include <vector>
 
-StompProtocol::StompProtocol() : subscriptionIdCounter(0), receiptIdCounter(0), receiptMap(), subscriptionMap(), messageList() {}
+StompProtocol::StompProtocol() : subscriptionIdCounter(0), receiptIdCounter(0), receiptMap(), subscriptionMap(), messageList(), username() {}
 
 string StompProtocol::createConnectFrame(const string &host, const string &username, const string &password)
 {
@@ -342,4 +342,14 @@ void StompProtocol::addMessage(const string &message)
 vector<string> StompProtocol::getMessages()
 {
     return messageList;
+}
+
+void StompProtocol::setUsername(const string &username)
+{
+    this->username = username;
+}
+
+const string &StompProtocol::getUsername() const
+{
+    return username;
 }

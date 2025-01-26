@@ -57,6 +57,7 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol *&stomp
                      << endl;
                 break;
             }
+            stompProtocol->setUsername(username);
             continue;
         }
         if (!connectionHandler || !connectionHandler->isConnected())

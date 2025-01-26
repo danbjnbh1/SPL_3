@@ -14,6 +14,7 @@ private:
     map<int, string> receiptMap;      // Map to store receipt IDs and their corresponding requests
     map<int, string> subscriptionMap; // Map to store subscription IDs and their corresponding requests
     vector<string> messageList;
+    string username;
 
 public:
     StompProtocol();
@@ -40,4 +41,6 @@ public:
     int numOfForcesArrival();
     string addDetails(std::map<std::string, std::string> &bodyParsed);
     map<string, string> parseEventBody(const string &body);
+    void setUsername(const string &username);
+    const string &getUsername() const;
 };
