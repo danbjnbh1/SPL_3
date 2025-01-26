@@ -83,7 +83,6 @@ bool ConnectionHandler::getLine(std::string &line)
 
 bool ConnectionHandler::sendLine(std::string &line)
 {
-	cout << "sending: " << line << endl;
 	return sendFrameAscii(line, '\0');
 }
 

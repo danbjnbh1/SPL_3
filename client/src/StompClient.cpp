@@ -242,7 +242,8 @@ void socketReader(ConnectionHandler *&connectionHandler, StompProtocol *&stompPr
 
         if (command == "MESSAGE")
         {
-            stompProtocol->addMessage(answer);
+            string messageBody = headers["body"];
+            stompProtocol->addMessage(messageBody);
         }
     }
 }
