@@ -111,9 +111,15 @@ void keyboardReader(ConnectionHandler *&connectionHandler, StompProtocol *&stomp
         }
         else if (command == "exit")
         {
-            string id;
-            iss >> id;
-            string unsubscribeFrame = stompProtocol->createUnsubscribeFrame(id);
+            string channel;
+            iss >> channel;
+            int id = stompProtocol->getSubscriptionIdByChannel(channel);
+            if (id == -1)
+            {
+                cout << "You are not subscribed to this channel" << endl;
+                continue;
+            }
+            string unsubscribeFrame = stompProtocol->createUnsubscribeFrame(channel);
             if (!connectionHandler->sendLine(unsubscribeFrame))
             {
                 cout << "Disconnected. Exiting4...\n"
