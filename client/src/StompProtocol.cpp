@@ -342,8 +342,7 @@ vector<string> StompProtocol::getMessages(const string &clientName)
     for (const string &message : messageList)
     {
         map<string, string> headers = parseEventBody(message);
-        cout << "user: " << headers["user"] << endl;
-        if (headers["user"] == clientName)
+        if (headers["user"] == " "+ clientName)
         {
             messages.push_back(message);
         }
